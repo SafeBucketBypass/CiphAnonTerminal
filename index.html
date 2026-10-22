@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ASCII Terminal</title>
+  <title>Terminal</title>
 
   <style>
     :root {
-      --white: #ffffff;
       --black: #000000;
-      --gray: #666666;
-      --light-gray: #eeeeee;
-      --border: #cfcfcf;
-      --green: #526b00;
+      --white: #ffffff;
+      --gray: #9a9a9a;
+      --dark-gray: #222222;
     }
 
     * {
@@ -25,123 +23,35 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--white);
-      color: var(--black);
+      background: var(--black);
+      color: var(--white);
       font-family: "Courier New", Courier, monospace;
       font-weight: normal;
     }
-
-    button,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    #app {
-      width: 100%;
-      height: 100%;
-      background: var(--white);
-    }
-
-    /* Terminal page */
 
     #terminalPage {
       position: relative;
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-direction: column;
-      background: var(--white);
-    }
-
-    #topBar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 54px;
-      padding: 0 20px;
-      border-bottom: 2px solid var(--black);
-      background: var(--white);
-      color: var(--gray);
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-
-    #topLeft,
-    #topRight {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    #statusDot {
-      width: 9px;
-      height: 9px;
+      overflow: hidden;
       background: var(--black);
-      animation: blink 0.8s steps(1, end) infinite;
+      color: var(--white);
     }
 
     #terminalViewport {
-      position: relative;
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 24px clamp(14px, 6vw, 110px) 120px;
-      background: var(--white);
-    }
-
-    #bootPanel {
       width: 100%;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    #bootHeader {
-      display: flex;
-      justify-content: space-between;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-      color: var(--gray);
-      font-size: 12px;
-    }
-
-    #bootOutput {
-      height: 155px;
-      margin-top: 15px;
-      overflow: hidden;
-      color: var(--gray);
-      font-size: 12px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-    }
-
-    .bootLine {
-      min-height: 1.5em;
-    }
-
-    .bootLine.black {
-      color: var(--black);
-    }
-
-    .bootLine.green {
-      color: var(--green);
-    }
-
-    .bootLine.error {
-      color: var(--black);
-      text-decoration: underline;
+      height: 100%;
+      overflow-y: auto;
+      padding: 30px 6vw 100px;
+      background: var(--black);
+      color: var(--white);
     }
 
     #asciiArt {
       width: 100%;
-      max-width: 1450px;
-      margin: 24px auto 34px;
+      margin: 0 auto 35px;
       overflow-x: auto;
-      color: var(--black);
+      color: var(--white);
       font-family: "Courier New", Courier, monospace;
       font-size: clamp(5px, 0.78vw, 13px);
       font-weight: normal;
@@ -150,8 +60,7 @@
       white-space: pre;
     }
 
-    #commandOutput {
-      width: 100%;
+    #scriptOutput {
       max-width: 1100px;
       margin: 0 auto;
       color: var(--gray);
@@ -161,24 +70,17 @@
       word-break: break-word;
     }
 
-    .outputLine {
+    .scriptLine {
       min-height: 1.55em;
     }
 
-    .commandLine {
-      color: var(--black);
+    .bright {
+      color: var(--white);
     }
 
-    .systemLine {
-      color: var(--gray);
+    .dim {
+      color: #666666;
     }
-
-    .errorLine {
-      color: var(--black);
-      text-decoration: underline;
-    }
-
-    /* Terminal command form */
 
     #commandForm {
       position: absolute;
@@ -188,21 +90,14 @@
       z-index: 10;
       display: flex;
       align-items: center;
-      min-height: 66px;
-      padding: 0 22px;
-      border-top: 2px solid var(--black);
-      background: rgba(255, 255, 255, 0.97);
-      color: var(--black);
-      font-size: 16px;
+      height: 68px;
+      padding: 0 6vw;
+      border-top: 1px solid var(--dark-gray);
+      background: var(--black);
+      color: var(--white);
     }
 
-    #prompt {
-      flex: 0 0 auto;
-      margin-right: 10px;
-      white-space: nowrap;
-    }
-
-    #inputWrap {
+    #inputWrapper {
       position: relative;
       width: 100%;
       min-width: 0;
@@ -214,43 +109,76 @@
       outline: 0;
       padding: 0;
       background: transparent;
-      color: var(--gray);
+      color: var(--white);
       caret-color: transparent;
+      font-family: "Courier New", Courier, monospace;
       font-size: 16px;
+      font-weight: normal;
     }
 
     #commandInput::placeholder {
-      color: var(--gray);
+      color: #666666;
       opacity: 1;
     }
 
-    #blockCursor {
+    #cursor {
       position: absolute;
       top: 50%;
       left: 0;
       width: 10px;
       height: 19px;
       transform: translateY(-50%);
-      background: var(--black);
+      background: var(--white);
       pointer-events: none;
       animation: blink 0.8s steps(1, end) infinite;
     }
 
-    /* Glitch/static */
-
     #staticLayer {
       position: fixed;
       inset: 0;
-      z-index: 40;
+      z-index: 30;
       pointer-events: none;
-      opacity: 0.08;
+      opacity: 0.12;
       background-image:
-        radial-gradient(#000 0.7px, transparent 0.8px),
-        radial-gradient(#777 0.7px, transparent 0.8px);
+        radial-gradient(#ffffff 0.6px, transparent 0.8px),
+        radial-gradient(#777777 0.6px, transparent 0.8px);
       background-position: 0 0, 4px 4px;
       background-size: 7px 7px, 9px 9px;
-      mix-blend-mode: multiply;
-      animation: staticMove 0.14s steps(2, end) infinite;
+      mix-blend-mode: screen;
+      animation: staticMove 0.13s steps(2, end) infinite;
+    }
+
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 31;
+      pointer-events: none;
+      opacity: 0.15;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(255, 255, 255, 0.15) 4px
+      );
+      mix-blend-mode: screen;
+    }
+
+    #glitchBlocks {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .glitchBlock {
+      position: absolute;
+      opacity: 0;
+      background: var(--white);
+    }
+
+    .glitchBlock.active {
+      animation: glitchBlock 0.18s steps(2, end);
     }
 
     @keyframes staticMove {
@@ -267,38 +195,6 @@
       }
     }
 
-    #scanlines {
-      position: fixed;
-      inset: 0;
-      z-index: 41;
-      pointer-events: none;
-      opacity: 0.09;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent 0px,
-        transparent 3px,
-        #000 4px
-      );
-      mix-blend-mode: multiply;
-    }
-
-    #glitchBlocks {
-      position: fixed;
-      inset: 0;
-      z-index: 45;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .glitchBlock {
-      position: absolute;
-      opacity: 0;
-    }
-
-    .glitchBlock.active {
-      animation: glitchBlock 0.2s steps(2, end);
-    }
-
     @keyframes glitchBlock {
       0% {
         opacity: 0;
@@ -306,11 +202,11 @@
       }
 
       25% {
-        opacity: 0.65;
+        opacity: 0.8;
       }
 
-      60% {
-        opacity: 0.2;
+      55% {
+        opacity: 0.25;
         transform: translateX(14px);
       }
 
@@ -332,257 +228,44 @@
       }
     }
 
-    /* Code page */
-
-    #codePage {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: none;
-      flex-direction: column;
-      background: var(--white);
-      color: var(--black);
-    }
-
-    #codePage.open {
-      display: flex;
-    }
-
-    #codeHeader {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 54px;
-      padding: 0 14px;
-      border-bottom: 2px solid var(--black);
-    }
-
-    #codeHeaderLeft,
-    #codeHeaderRight {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .codeButton {
-      border: 1px solid var(--black);
-      padding: 7px 10px;
-      background: var(--white);
-      color: var(--black);
-      font-size: 12px;
-    }
-
-    .codeButton:hover {
-      background: var(--black);
-      color: var(--white);
-    }
-
-    #codeWorkspace {
-      display: grid;
-      grid-template-columns: 205px minmax(250px, 1fr) minmax(300px, 1fr);
-      flex: 1;
-      min-height: 0;
-    }
-
-    #filePanel {
-      min-width: 0;
-      overflow-y: auto;
-      border-right: 2px solid var(--black);
-      background: #fafafa;
-    }
-
-    #filePanelTitle {
-      padding: 13px;
-      border-bottom: 1px solid var(--border);
-      color: var(--gray);
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-
-    #fileList {
-      padding: 8px;
-    }
-
-    .fileItem {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      margin-bottom: 4px;
-      border: 1px solid transparent;
-      padding: 9px;
-      background: transparent;
-      color: var(--black);
-      text-align: left;
-      font-size: 13px;
-    }
-
-    .fileItem:hover,
-    .fileItem.active {
-      border-color: var(--black);
-      background: var(--white);
-    }
-
-    .deleteFile {
-      border: 0;
-      background: transparent;
-      color: var(--gray);
-      cursor: pointer;
-    }
-
-    #editorPanel {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      border-right: 2px solid var(--black);
-    }
-
-    #editorTitle {
-      padding: 13px;
-      border-bottom: 1px solid var(--border);
-      color: var(--gray);
-      font-size: 12px;
-    }
-
-    #codeEditor {
-      flex: 1;
-      width: 100%;
-      min-height: 0;
-      resize: none;
-      border: 0;
-      outline: 0;
-      padding: 16px;
-      background: var(--white);
-      color: var(--black);
-      font-family: "Courier New", Courier, monospace;
-      font-size: 13px;
-      line-height: 1.5;
-      tab-size: 2;
-    }
-
-    #previewPanel {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      background: #f5f5f5;
-    }
-
-    #previewTitle {
-      padding: 13px;
-      border-bottom: 1px solid var(--border);
-      color: var(--gray);
-      font-size: 12px;
-    }
-
-    #previewFrame {
-      flex: 1;
-      width: 100%;
-      min-height: 0;
-      border: 0;
-      background: var(--white);
-    }
-
-    #imageInput {
-      display: none;
-    }
-
-    #projectNameInput {
-      width: 135px;
-      border: 1px solid var(--black);
-      outline: 0;
-      padding: 7px;
-      background: var(--white);
-      color: var(--black);
-      font-size: 12px;
-    }
-
-    @media (max-width: 900px) {
-      #codeWorkspace {
-        grid-template-columns: 160px 1fr;
-      }
-
-      #previewPanel {
-        position: fixed;
-        right: 10px;
-        bottom: 10px;
-        width: 45vw;
-        height: 38vh;
-        border: 2px solid var(--black);
-        box-shadow: 5px 5px 0 #000;
-      }
-    }
-
     @media (max-width: 600px) {
-      #topBar {
-        min-height: 46px;
-        padding: 0 12px;
-        font-size: 9px;
-      }
-
       #terminalViewport {
-        padding: 18px 12px 110px;
+        padding: 20px 12px 90px;
       }
 
       #asciiArt {
         font-size: 5px;
       }
 
+      #scriptOutput {
+        font-size: 12px;
+      }
+
       #commandForm {
-        min-height: 56px;
+        height: 58px;
         padding: 0 12px;
-        font-size: 13px;
       }
 
       #commandInput {
         font-size: 13px;
       }
 
-      #blockCursor {
+      #cursor {
         width: 8px;
         height: 15px;
-      }
-
-      #codeWorkspace {
-        grid-template-columns: 125px 1fr;
-      }
-
-      #previewPanel {
-        display: none;
       }
     }
   </style>
 </head>
 
 <body>
-  <main id="app">
+  <main id="terminalPage">
     <div id="staticLayer"></div>
     <div id="scanlines"></div>
     <div id="glitchBlocks"></div>
 
-    <section id="terminalPage">
-      <header id="topBar">
-        <div id="topLeft">
-          <span id="statusDot"></span>
-          <span>LOCAL ASCII TERMINAL</span>
-        </div>
-
-        <div id="topRight">
-          <span>STATIC ACTIVE</span>
-          <span id="clock">--:--:--</span>
-        </div>
-      </header>
-
-      <div id="terminalViewport">
-        <section id="bootPanel">
-          <div id="bootHeader">
-            <span>BOOT_SEQUENCE.log</span>
-            <span id="bootPercent">000%</span>
-          </div>
-
-          <div id="bootOutput"></div>
-        </section>
-
-        <pre id="asciiArt">
+    <section id="terminalViewport">
+      <pre id="asciiArt">
                                                                                                     
                                                                                                     
                                                                                                     
@@ -683,161 +366,56 @@
                                                                                                     
         </pre>
 
-        <div id="commandOutput">
-          <div class="outputLine systemLine">SYSTEM READY.</div>
-          <div class="outputLine systemLine">SIMULATED LOCAL PROCESS TABLE ACTIVE.</div>
-          <div class="outputLine">Type "help" to view commands.</div>
-          <div class="outputLine"></div>
-        </div>
-      </div>
-
-      <form id="commandForm" autocomplete="off">
-        <span id="prompt">guest@ascii:~$</span>
-
-        <div id="inputWrap">
-          <input
-            id="commandInput"
-            type="text"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="type help"
-          />
-          <span id="blockCursor"></span>
-        </div>
-      </form>
+      <div id="scriptOutput"></div>
     </section>
 
-    <section id="codePage">
-      <header id="codeHeader">
-        <div id="codeHeaderLeft">
-          <button class="codeButton" id="closeCodeButton">TERMINAL</button>
-          <strong>/code</strong>
-          <input id="projectNameInput" value="browser-project" />
-        </div>
+    <form id="commandForm" autocomplete="off">
+      <div id="inputWrapper">
+        <input
+          id="commandInput"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="type a command"
+        />
 
-        <div id="codeHeaderRight">
-          <button class="codeButton" id="newFileButton">NEW FILE</button>
-          <button class="codeButton" id="uploadImageButton">UPLOAD IMAGE</button>
-          <button class="codeButton" id="downloadButton">DOWNLOAD HTML</button>
-          <input id="imageInput" type="file" accept="image/*" />
-        </div>
-      </header>
-
-      <div id="codeWorkspace">
-        <aside id="filePanel">
-          <div id="filePanelTitle">PROJECT FILES</div>
-          <div id="fileList"></div>
-        </aside>
-
-        <section id="editorPanel">
-          <div id="editorTitle">index.html</div>
-          <textarea id="codeEditor" spellcheck="false"></textarea>
-        </section>
-
-        <section id="previewPanel">
-          <div id="previewTitle">LIVE PREVIEW</div>
-          <iframe id="previewFrame" title="Live preview"></iframe>
-        </section>
+        <span id="cursor"></span>
       </div>
-    </section>
+    </form>
   </main>
 
   <script>
-    const terminalPage = document.getElementById("terminalPage");
-    const codePage = document.getElementById("codePage");
-
     const commandForm = document.getElementById("commandForm");
     const commandInput = document.getElementById("commandInput");
-    const inputWrap = document.getElementById("inputWrap");
-    const blockCursor = document.getElementById("blockCursor");
-    const commandOutput = document.getElementById("commandOutput");
+    const inputWrapper = document.getElementById("inputWrapper");
+    const cursor = document.getElementById("cursor");
+    const scriptOutput = document.getElementById("scriptOutput");
     const terminalViewport = document.getElementById("terminalViewport");
-
-    const bootOutput = document.getElementById("bootOutput");
-    const bootPercent = document.getElementById("bootPercent");
-    const clock = document.getElementById("clock");
-
     const glitchBlocks = document.getElementById("glitchBlocks");
 
-    const closeCodeButton = document.getElementById("closeCodeButton");
-    const newFileButton = document.getElementById("newFileButton");
-    const uploadImageButton = document.getElementById("uploadImageButton");
-    const downloadButton = document.getElementById("downloadButton");
-    const imageInput = document.getElementById("imageInput");
-
-    const fileList = document.getElementById("fileList");
-    const editorTitle = document.getElementById("editorTitle");
-    const codeEditor = document.getElementById("codeEditor");
-    const previewFrame = document.getElementById("previewFrame");
-    const projectNameInput = document.getElementById("projectNameInput");
-
-    const bootLines = [
-      "[00:00:01] initializing local display buffer",
-      "[00:00:02] mounting simulated filesystem",
-      "[00:00:03] scanning /system/modules",
-      "[00:00:04] loading terminal renderer",
-      "[00:00:05] allocating output stream",
-      "[00:00:06] checking command registry",
-      "[00:00:07] loading visual static layer",
-      "[00:00:08] preparing ASCII memory block",
-      "[00:00:09] starting process monitor",
-      "[00:00:10] opening local command socket",
-      "[00:00:11] command interface ready",
-      "[00:00:12] display synchronization complete"
+    const bootMessages = [
+      "[system] allocating display memory",
+      "[system] mounting local workspace",
+      "[system] reading process table",
+      "[system] loading terminal modules",
+      "[system] initializing command parser",
+      "[system] starting static renderer",
+      "[system] attaching input stream",
+      "[system] scanning local project tree",
+      "[system] preparing live preview service",
+      "[system] process monitor online",
+      "[system] input stream ready"
     ];
 
     let commandHistory = [];
     let historyIndex = -1;
-    let processTimer = null;
+    let bootIndex = 0;
 
-    let projectFiles = {
-      "index.html": {
-        type: "html",
-        content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Project</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: white;
-      color: black;
-      font-family: monospace;
-    }
-
-    .box {
-      border: 2px solid black;
-      padding: 32px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h1>NEW PROJECT</h1>
-    <p>Edit index.html and watch this preview update.</p>
-  </div>
-</body>
-</html>`
-      }
-    };
-
-    let activeFile = "index.html";
-
-    function updateClock() {
-      clock.textContent = new Date().toLocaleTimeString();
-    }
-
-    function addCommandOutput(text = "", className = "") {
+    function addOutput(text = "", className = "") {
       const line = document.createElement("div");
-      line.className = `outputLine ${className}`;
+      line.className = `scriptLine ${className}`;
       line.textContent = text;
-      commandOutput.appendChild(line);
+      scriptOutput.appendChild(line);
       terminalViewport.scrollTop = terminalViewport.scrollHeight;
     }
 
@@ -854,9 +432,9 @@
       measurement.style.letterSpacing = styles.letterSpacing;
       measurement.textContent = commandInput.value;
 
-      inputWrap.appendChild(measurement);
+      inputWrapper.appendChild(measurement);
 
-      blockCursor.style.left =
+      cursor.style.left =
         `${measurement.getBoundingClientRect().width}px`;
 
       measurement.remove();
@@ -868,10 +446,8 @@
 
       block.style.left = `${Math.random() * 100}%`;
       block.style.top = `${Math.random() * 100}%`;
-      block.style.width = `${20 + Math.random() * 160}px`;
-      block.style.height = `${2 + Math.random() * 15}px`;
-      block.style.background =
-        Math.random() > 0.5 ? "#000000" : "#888888";
+      block.style.width = `${15 + Math.random() * 150}px`;
+      block.style.height = `${2 + Math.random() * 12}px`;
 
       glitchBlocks.appendChild(block);
 
@@ -880,42 +456,33 @@
       }, 220);
     }
 
-    function startProcessSimulation() {
-      let index = 0;
+    function runBootMessage() {
+      if (bootIndex >= bootMessages.length) {
+        clearInterval(bootTimer);
+        addOutput("[system] ready", "bright");
+        addOutput("");
+        return;
+      }
 
-      processTimer = setInterval(() => {
-        if (index >= bootLines.length) {
-          clearInterval(processTimer);
-          return;
-        }
+      addOutput(
+        bootMessages[bootIndex],
+        bootIndex % 3 === 0 ? "bright" : "dim"
+      );
 
-        const line = document.createElement("div");
-        line.className = "bootLine";
-
-        if (index % 4 === 0) {
-          line.classList.add("black");
-        }
-
-        line.textContent = bootLines[index];
-        bootOutput.appendChild(line);
-
-        bootOutput.scrollTop = bootOutput.scrollHeight;
-        bootPercent.textContent =
-          `${String(Math.round(((index + 1) / bootLines.length) * 100)).padStart(3, "0")}%`;
-
-        index++;
-      }, 650);
+      bootIndex++;
     }
+
+    const bootTimer = setInterval(runBootMessage, 480);
 
     function runCommand(rawCommand) {
       const commandLine = rawCommand.trim();
 
       if (!commandLine) {
-        addCommandOutput("");
+        addOutput("");
         return;
       }
 
-      addCommandOutput(`guest@ascii:~$ ${commandLine}`, "commandLine");
+      addOutput(`$ ${commandLine}`, "bright");
 
       const parts = commandLine.split(/\s+/);
       const command = parts[0].toLowerCase();
@@ -923,69 +490,69 @@
 
       switch (command) {
         case "help":
-        case "?":
-          addCommandOutput("AVAILABLE COMMANDS");
-          addCommandOutput("------------------");
-          addCommandOutput("help       list commands");
-          addCommandOutput("clear      clear output");
-          addCommandOutput("status     show simulated processes");
-          addCommandOutput("scan       run a simulated file scan");
-          addCommandOutput("run        run a simulated script");
-          addCommandOutput("echo TEXT  print text");
-          addCommandOutput("date       show date and time");
-          addCommandOutput("whoami     show current user");
-          addCommandOutput("glitch     create static interference");
-          addCommandOutput("code       open the /code workspace");
-          addCommandOutput("");
+          addOutput("help       list commands");
+          addOutput("clear      clear output");
+          addOutput("status     show running processes");
+          addOutput("scan       scan simulated files");
+          addOutput("run TEXT   run simulated script");
+          addOutput("echo TEXT  print text");
+          addOutput("date       show current date and time");
+          addOutput("whoami     show current user");
+          addOutput("glitch     create static interference");
+          addOutput("code       open the browser code workspace");
+          addOutput("");
           break;
 
         case "clear":
         case "cls":
-          commandOutput.innerHTML = "";
+          scriptOutput.innerHTML = "";
           break;
 
         case "status":
-          addCommandOutput("PROCESS TABLE");
-          addCommandOutput("renderer.exe      RUNNING");
-          addCommandOutput("static-engine     RUNNING");
-          addCommandOutput("command-router    READY");
-          addCommandOutput("preview-service   STANDBY");
-          addCommandOutput("network           DISABLED");
+          addOutput("process monitor");
+          addOutput("  renderer       running");
+          addOutput("  static-engine  running");
+          addOutput("  input-stream   ready");
+          addOutput("  live-preview   standby");
+          addOutput("  network        disabled");
           break;
 
         case "scan":
-          addCommandOutput("[scan] /system");
-          addCommandOutput("[scan] /modules");
-          addCommandOutput("[scan] /runtime");
-          addCommandOutput("[scan] no external connections");
-          addCommandOutput("[scan] complete");
+          addOutput("scanning simulated project tree...");
+          addOutput("/system");
+          addOutput("/runtime");
+          addOutput("/workspace");
+          addOutput("/workspace/index.html");
+          addOutput("/workspace/style.css");
+          addOutput("/workspace/script.js");
+          addOutput("scan complete");
           break;
 
         case "run":
-          addCommandOutput(
+          addOutput(
             argument
-              ? `[run] simulated script started: ${argument}`
-              : "[run] simulated script started"
+              ? `starting simulated process: ${argument}`
+              : "starting simulated process"
           );
 
-          for (let i = 1; i <= 5; i++) {
+          for (let i = 1; i <= 6; i++) {
             setTimeout(() => {
-              addCommandOutput(`[run] process output ${i}/5`);
-            }, i * 300);
+              addOutput(`[process] output stream ${i}/6`);
+            }, i * 280);
           }
           break;
 
         case "echo":
-          addCommandOutput(argument);
+          addOutput(argument);
           break;
 
         case "date":
         case "time":
-          addCommandOutput(new Date().toString());
+          addOutput(new Date().toString());
           break;
 
         case "whoami":
-          addCommandOutput("guest");
+          addOutput("user");
           break;
 
         case "glitch":
@@ -993,20 +560,18 @@
             setTimeout(createGlitchBlock, i * 70);
           }
 
-          addCommandOutput("static interference created");
+          addOutput("static interference triggered");
           break;
 
         case "code":
         case "/code":
-          openCodePage();
+          window.location.hash = "code";
+          openCodeWorkspace();
           break;
 
         default:
-          addCommandOutput(
-            `command not found: ${command}`,
-            "errorLine"
-          );
-          addCommandOutput('type "help" for commands');
+          addOutput(`command not found: ${command}`);
+          addOutput('type "help" for commands');
       }
     }
 
@@ -1061,201 +626,293 @@
 
         updateCursor();
       }
-
-      if (event.key === "Tab") {
-        event.preventDefault();
-
-        const commands = [
-          "help",
-          "clear",
-          "status",
-          "scan",
-          "run ",
-          "echo ",
-          "date",
-          "whoami",
-          "glitch",
-          "code"
-        ];
-
-        const match = commands.find((item) =>
-          item.startsWith(commandInput.value.toLowerCase())
-        );
-
-        if (match) {
-          commandInput.value = match;
-          updateCursor();
-        }
-      }
     });
 
-    function saveProject() {
-      localStorage.setItem(
-        "ascii-terminal-project-files",
-        JSON.stringify(projectFiles)
-      );
+    document.addEventListener("click", () => {
+      commandInput.focus();
+      updateCursor();
+    });
 
-      localStorage.setItem(
-        "ascii-terminal-project-name",
-        projectNameInput.value
-      );
-    }
+    window.addEventListener("resize", updateCursor);
 
-    function loadProject() {
-      const savedFiles = localStorage.getItem(
-        "ascii-terminal-project-files"
-      );
+    /* /code workspace */
 
-      const savedProjectName = localStorage.getItem(
-        "ascii-terminal-project-name"
-      );
+    const codeWorkspace = document.createElement("section");
+    codeWorkspace.id = "codeWorkspace";
+    codeWorkspace.innerHTML = `
+      <div id="codeTop">
+        <button id="closeCode">TERMINAL</button>
+        <span>/code</span>
+        <button id="newCodeFile">NEW FILE</button>
+        <button id="uploadCodeImage">UPLOAD IMAGE</button>
+        <input id="codeImageInput" type="file" accept="image/*">
+      </div>
 
-      if (savedFiles) {
-        try {
-          projectFiles = JSON.parse(savedFiles);
-        } catch {
-          console.warn("Saved project could not be loaded.");
+      <div id="codeBody">
+        <aside id="codeFiles"></aside>
+
+        <textarea id="codeEditor" spellcheck="false"></textarea>
+
+        <iframe id="codePreview" title="Live preview"></iframe>
+      </div>
+    `;
+
+    document.body.appendChild(codeWorkspace);
+
+    const codeStyle = document.createElement("style");
+    codeStyle.textContent = `
+      #codeWorkspace {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        flex-direction: column;
+        background: #000;
+        color: #fff;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      #codeWorkspace.open {
+        display: flex;
+      }
+
+      #codeTop {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 52px;
+        padding: 0 12px;
+        border-bottom: 1px solid #555;
+        color: #fff;
+      }
+
+      #codeTop button {
+        border: 1px solid #fff;
+        padding: 6px 9px;
+        background: #000;
+        color: #fff;
+        font-family: inherit;
+        font-size: 12px;
+      }
+
+      #codeTop button:hover {
+        background: #fff;
+        color: #000;
+      }
+
+      #codeImageInput {
+        display: none;
+      }
+
+      #codeBody {
+        display: grid;
+        grid-template-columns: 190px minmax(250px, 1fr) minmax(300px, 1fr);
+        flex: 1;
+        min-height: 0;
+      }
+
+      #codeFiles {
+        overflow-y: auto;
+        padding: 10px;
+        border-right: 1px solid #555;
+      }
+
+      .codeFile {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+        border: 1px solid transparent;
+        padding: 9px;
+        background: #000;
+        color: #fff;
+        text-align: left;
+        font-family: inherit;
+        font-size: 12px;
+      }
+
+      .codeFile:hover,
+      .codeFile.active {
+        border-color: #fff;
+      }
+
+      #codeEditor {
+        width: 100%;
+        height: 100%;
+        resize: none;
+        border: 0;
+        outline: 0;
+        padding: 15px;
+        background: #050505;
+        color: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        line-height: 1.5;
+        tab-size: 2;
+      }
+
+      #codePreview {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #fff;
+      }
+
+      @media (max-width: 850px) {
+        #codeBody {
+          grid-template-columns: 145px 1fr;
+        }
+
+        #codePreview {
+          position: fixed;
+          right: 10px;
+          bottom: 10px;
+          width: 43vw;
+          height: 35vh;
+          border: 1px solid #fff;
         }
       }
 
-      if (savedProjectName) {
-        projectNameInput.value = savedProjectName;
-      }
-    }
-
-    function renderFileList() {
-      fileList.innerHTML = "";
-
-      Object.keys(projectFiles).forEach((filename) => {
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.gap = "3px";
-
-        const fileButton = document.createElement("button");
-        fileButton.className = "fileItem";
-        fileButton.textContent = filename;
-
-        if (filename === activeFile) {
-          fileButton.classList.add("active");
+      @media (max-width: 600px) {
+        #codeBody {
+          grid-template-columns: 110px 1fr;
         }
 
-        fileButton.addEventListener("click", () => {
-          saveActiveEditor();
-          activeFile = filename;
-          renderFileList();
-          loadActiveEditor();
+        #codePreview {
+          display: none;
+        }
+
+        #codeTop {
+          font-size: 11px;
+        }
+      }
+    `;
+
+    document.head.appendChild(codeStyle);
+
+    const codeFilesElement = document.getElementById("codeFiles");
+    const codeEditorElement = document.getElementById("codeEditor");
+    const codePreviewElement = document.getElementById("codePreview");
+    const closeCodeButton = document.getElementById("closeCode");
+    const newCodeFileButton = document.getElementById("newCodeFile");
+    const uploadCodeImageButton =
+      document.getElementById("uploadCodeImage");
+    const codeImageInput =
+      document.getElementById("codeImageInput");
+
+    let codeFiles = {
+      "index.html": `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Live Project</title>
+</head>
+<body>
+  <h1>Live Project</h1>
+  <p>Edit this file and watch the preview update.</p>
+</body>
+</html>`,
+      "style.css": `body {
+  font-family: monospace;
+  padding: 40px;
+}`,
+      "script.js": `console.log("Live project running");`
+    };
+
+    let activeCodeFile = "index.html";
+
+    function saveCodeFiles() {
+      localStorage.setItem(
+        "ascii-terminal-code-files",
+        JSON.stringify(codeFiles)
+      );
+    }
+
+    function renderCodeFiles() {
+      codeFilesElement.innerHTML = "";
+
+      Object.keys(codeFiles).forEach((filename) => {
+        const button = document.createElement("button");
+        button.className = "codeFile";
+        button.textContent = filename;
+
+        if (filename === activeCodeFile) {
+          button.classList.add("active");
+        }
+
+        button.addEventListener("click", () => {
+          codeFiles[activeCodeFile] = codeEditorElement.value;
+          activeCodeFile = filename;
+          renderCodeFiles();
+          loadCodeFile();
+          updateCodePreview();
         });
 
-        const deleteButton = document.createElement("button");
-        deleteButton.className = "deleteFile";
-        deleteButton.textContent = "×";
-        deleteButton.title = "Delete file";
-
-        deleteButton.addEventListener("click", () => {
-          if (Object.keys(projectFiles).length <= 1) {
-            return;
-          }
-
-          delete projectFiles[filename];
-
-          if (activeFile === filename) {
-            activeFile = Object.keys(projectFiles)[0];
-          }
-
-          saveProject();
-          renderFileList();
-          loadActiveEditor();
-        });
-
-        row.appendChild(fileButton);
-        row.appendChild(deleteButton);
-        fileList.appendChild(row);
+        codeFilesElement.appendChild(button);
       });
     }
 
-    function loadActiveEditor() {
-      editorTitle.textContent = activeFile;
-      codeEditor.value = projectFiles[activeFile].content;
-      updatePreview();
+    function loadCodeFile() {
+      codeEditorElement.value = codeFiles[activeCodeFile] || "";
     }
 
-    function saveActiveEditor() {
-      if (!projectFiles[activeFile]) {
-        return;
-      }
+    function updateCodePreview() {
+      codeFiles[activeCodeFile] = codeEditorElement.value;
+      saveCodeFiles();
 
-      projectFiles[activeFile].content = codeEditor.value;
-      saveProject();
-    }
+      const html = codeFiles["index.html"] || "";
+      const css = `<style>${codeFiles["style.css"] || ""}</style>`;
+      const js = `<script>${codeFiles["script.js"] || ""}<\/script>`;
 
-    function updatePreview() {
-      saveActiveEditor();
-
-      let html = projectFiles["index.html"]
-        ? projectFiles["index.html"].content
-        : "<h1>No index.html file</h1>";
-
-      const css = projectFiles["style.css"]
-        ? `<style>${projectFiles["style.css"].content}</style>`
-        : "";
-
-      const js = projectFiles["script.js"]
-        ? `<script>${projectFiles["script.js"].content}<\/script>`
-        : "";
-
-      const documentContent = `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-${css}
-</head>
-<body>
-${html}
-${js}
-</body>
-</html>
+      codePreviewElement.srcdoc = `
+        ${html}
+        ${css}
+        ${js}
       `;
-
-      previewFrame.srcdoc = documentContent;
     }
 
-    codeEditor.addEventListener("input", updatePreview);
+    function openCodeWorkspace() {
+      codeWorkspace.classList.add("open");
+      terminalPage.style.display = "none";
+      renderCodeFiles();
+      loadCodeFile();
+      updateCodePreview();
+    }
 
-    projectNameInput.addEventListener("input", saveProject);
+    function closeCodeWorkspace() {
+      codeFiles[activeCodeFile] = codeEditorElement.value;
+      saveCodeFiles();
+      codeWorkspace.classList.remove("open");
+      terminalPage.style.display = "block";
+      commandInput.focus();
+    }
 
-    newFileButton.addEventListener("click", () => {
+    codeEditorElement.addEventListener("input", updateCodePreview);
+
+    closeCodeButton.addEventListener("click", closeCodeWorkspace);
+
+    newCodeFileButton.addEventListener("click", () => {
       const filename = prompt(
-        "Enter a filename:",
+        "New file name:",
         "new-file.html"
       );
 
-      if (!filename || projectFiles[filename]) {
+      if (!filename || codeFiles[filename]) {
         return;
       }
 
-      projectFiles[filename] = {
-        type: filename.endsWith(".css")
-          ? "css"
-          : filename.endsWith(".js")
-            ? "javascript"
-            : "html",
-        content: ""
-      };
-
-      activeFile = filename;
-      saveProject();
-      renderFileList();
-      loadActiveEditor();
+      codeFiles[filename] = "";
+      activeCodeFile = filename;
+      renderCodeFiles();
+      loadCodeFile();
+      updateCodePreview();
     });
 
-    uploadImageButton.addEventListener("click", () => {
-      imageInput.click();
+    uploadCodeImageButton.addEventListener("click", () => {
+      codeImageInput.click();
     });
 
-    imageInput.addEventListener("change", () => {
-      const file = imageInput.files[0];
+    codeImageInput.addEventListener("change", () => {
+      const file = codeImageInput.files[0];
 
       if (!file) {
         return;
@@ -1266,88 +923,67 @@ ${js}
       reader.addEventListener("load", () => {
         const imageData = reader.result;
 
-        projectFiles["uploaded-image.txt"] = {
-          type: "image-data",
-          content: imageData
-        };
+        codeFiles["uploaded-image-data.txt"] = imageData;
+        codeFiles["index.html"] =
+          `${codeFiles["index.html"]}\n<img src="${imageData}" style="max-width:100%;">`;
 
-        const imageTag =
-          `<img src="${imageData}" alt="Uploaded image" style="max-width:100%;">`;
-
-        if (projectFiles["index.html"]) {
-          projectFiles["index.html"].content += `\n${imageTag}\n`;
-        }
-
-        activeFile = "index.html";
-        saveProject();
-        renderFileList();
-        loadActiveEditor();
+        activeCodeFile = "index.html";
+        renderCodeFiles();
+        loadCodeFile();
+        updateCodePreview();
+        saveCodeFiles();
       });
 
       reader.readAsDataURL(file);
     });
 
-    downloadButton.addEventListener("click", () => {
-      saveActiveEditor();
+    function loadSavedCodeFiles() {
+      const saved = localStorage.getItem(
+        "ascii-terminal-code-files"
+      );
 
-      const html = projectFiles["index.html"]
-        ? projectFiles["index.html"].content
-        : "";
+      if (!saved) {
+        return;
+      }
 
-      const blob = new Blob([html], {
-        type: "text/html"
-      });
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `${projectNameInput.value || "project"}.html`;
-      link.click();
-
-      URL.revokeObjectURL(url);
-    });
-
-    function openCodePage() {
-      saveActiveEditor();
-      terminalPage.style.display = "none";
-      codePage.classList.add("open");
-      renderFileList();
-      loadActiveEditor();
+      try {
+        codeFiles = JSON.parse(saved);
+      } catch {
+        console.warn("Could not load saved project.");
+      }
     }
 
-    function closeCodePage() {
-      saveActiveEditor();
-      codePage.classList.remove("open");
-      terminalPage.style.display = "flex";
-      commandInput.focus();
+    loadSavedCodeFiles();
+    renderCodeFiles();
+    loadCodeFile();
+    updateCodePreview();
+
+    if (window.location.hash === "#code") {
+      openCodeWorkspace();
     }
 
-    closeCodeButton.addEventListener("click", closeCodePage);
-
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && codePage.classList.contains("open")) {
-        closeCodePage();
+    window.addEventListener("hashchange", () => {
+      if (window.location.hash === "#code") {
+        openCodeWorkspace();
+      } else {
+        closeCodeWorkspace();
       }
     });
 
-    document.addEventListener("click", () => {
-      if (!codePage.classList.contains("open")) {
-        commandInput.focus();
-        updateCursor();
-      }
-    });
-
-    loadProject();
-    renderFileList();
-    loadActiveEditor();
-    startProcessSimulation();
+    updateCursor();
+    commandInput.focus();
     updateClock();
     setInterval(updateClock, 1000);
-    setInterval(createGlitchBlock, 1200);
 
-    commandInput.focus();
-    updateCursor();
+    /*
+      Open the editor by typing:
+
+      code
+
+      or:
+
+      /code
+    */
   </script>
 </body>
 </html>
