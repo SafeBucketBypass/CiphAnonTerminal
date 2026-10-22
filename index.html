@@ -3,18 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Terminal Interface</title>
+  <title>ASCII Terminal</title>
 
   <style>
     :root {
-      --black: #030303;
-      --dark: #080808;
-      --panel: #0e0e0e;
-      --white: #f4f4f4;
-      --gray: #8b8b8b;
-      --red: #ff3030;
-      --green: #d9ff00;
-      --border: #363636;
+      --background: #ffffff;
+      --foreground: #000000;
+      --muted: #555555;
     }
 
     * {
@@ -27,8 +22,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--black);
-      color: var(--white);
+      background: var(--background);
+      color: var(--foreground);
       font-family: "Courier New", Courier, monospace;
     }
 
@@ -39,22 +34,141 @@
         filter 0.06s linear;
     }
 
-    button,
-    input {
-      font: inherit;
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ffffff;
     }
 
-    /* Intro screen */
-    #introScreen {
+    /* Random black-and-white glitch blocks */
+    #glitchBlocks {
       position: fixed;
       inset: 0;
-      z-index: 100;
+      z-index: 50;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .glitchBlock {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .glitchBlock.black {
+      background: #000000;
+    }
+
+    .glitchBlock.white {
+      background: #ffffff;
+      border: 1px solid #000000;
+    }
+
+    .glitchBlock.active {
+      animation: glitchBlockFlash 0.2s steps(2, end);
+    }
+
+    @keyframes glitchBlockFlash {
+      0% {
+        opacity: 0;
+        transform: translateX(0);
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.35;
+        transform: translateX(12px);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+    }
+
+    /* Full-screen black-and-white flashes */
+    #screenFlash {
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      background: #000000;
+    }
+
+    #screenFlash.active {
+      animation: screenFlashAnimation 0.16s steps(2, end);
+    }
+
+    @keyframes screenFlashAnimation {
+      0% {
+        opacity: 0;
+        background: #000000;
+      }
+
+      25% {
+        opacity: 0.85;
+        background: #ffffff;
+      }
+
+      55% {
+        opacity: 0.7;
+        background: #000000;
+      }
+
+      100% {
+        opacity: 0;
+        background: #ffffff;
+      }
+    }
+
+    /* Scan lines */
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.12) 4px
+      );
+      mix-blend-mode: multiply;
+    }
+
+    #scanlines.active {
+      opacity: 1;
+      animation: scanlineMove 0.2s steps(2, end) infinite;
+    }
+
+    @keyframes scanlineMove {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 0 14px;
+      }
+    }
+
+    /* Intro loading screen */
+    #introScreen {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 25px;
-      background: #fff;
-      color: #000;
+      background: #ffffff;
+      color: #000000;
       transition: opacity 0.8s ease, visibility 0.8s ease;
     }
 
@@ -64,20 +178,21 @@
     }
 
     #introBox {
-      width: min(1050px, 94vw);
+      width: min(1000px, 94vw);
       text-align: center;
     }
 
     #introTitle {
-      margin-bottom: 15px;
-      font-size: clamp(12px, 2vw, 20px);
+      margin-bottom: 18px;
+      font-size: clamp(12px, 2vw, 19px);
       font-weight: bold;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
     }
 
     #introStatus {
       min-height: 23px;
       margin-bottom: 20px;
+      color: #333333;
       font-size: clamp(10px, 1.4vw, 15px);
       letter-spacing: 1px;
     }
@@ -89,39 +204,37 @@
       overflow: hidden;
       white-space: pre;
       text-align: center;
-      font-size: clamp(7px, 1.1vw, 17px);
+      color: #000000;
+      font-size: clamp(7px, 1.15vw, 17px);
       line-height: 1.12;
       font-weight: bold;
     }
 
-    #introProgress {
-      width: min(720px, 90vw);
+    #loadingBar {
+      width: min(700px, 90vw);
       height: 15px;
       margin: 28px auto 0;
       padding: 2px;
-      border: 2px solid #000;
+      border: 2px solid #000000;
+      background: #ffffff;
     }
 
-    #introProgressFill {
+    #loadingProgress {
       width: 0%;
       height: 100%;
-      background: #000;
+      background: #000000;
       transition: width 0.08s linear;
     }
 
-    /* Main interface */
+    /* Main white terminal */
     #terminalScreen {
-      position: fixed;
+      position: absolute;
       inset: 0;
+      z-index: 5;
       display: flex;
       flex-direction: column;
-      background:
-        radial-gradient(
-          circle at center,
-          rgba(35, 35, 35, 0.24),
-          transparent 55%
-        ),
-        var(--black);
+      background: #ffffff;
+      color: #000000;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.9s ease, visibility 0.9s ease;
@@ -132,94 +245,81 @@
       visibility: visible;
     }
 
-    #topBar {
+    #terminalHeader {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 58px;
-      padding: 0 22px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(5, 5, 5, 0.92);
-      color: var(--gray);
-      font-size: 12px;
+      padding: 17px 24px;
+      border-bottom: 2px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-size: 13px;
       letter-spacing: 1px;
     }
 
-    #topLeft,
-    #topRight {
+    #headerStatus {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
-    .topDot {
-      width: 8px;
-      height: 8px;
-      background: var(--red);
-      box-shadow: 0 0 10px var(--red);
+    #statusDot {
+      width: 9px;
+      height: 9px;
+      background: #000000;
       animation: blink 0.85s steps(1, end) infinite;
-    }
-
-    #warningText {
-      color: var(--red);
     }
 
     #terminalContent {
       flex: 1;
       overflow-y: auto;
-      padding: 26px clamp(16px, 7vw, 120px) 120px;
+      padding: 30px clamp(15px, 7vw, 120px) 125px;
       scroll-behavior: smooth;
+      background: #ffffff;
     }
 
-    #asciiDisplay {
+    #asciiArt {
       max-width: 100%;
-      margin: 0 auto 36px;
+      margin: 0 auto 35px;
       overflow-x: auto;
       white-space: pre;
       text-align: center;
-      color: var(--white);
-      font-size: clamp(7px, 1.1vw, 17px);
+      color: #000000;
+      font-size: clamp(7px, 1.15vw, 17px);
       line-height: 1.12;
       font-weight: bold;
-      text-shadow:
-        0 0 3px rgba(255, 255, 255, 0.5),
-        0 0 12px rgba(255, 255, 255, 0.2);
+      text-shadow: 0 0 2px rgba(0, 0, 0, 0.35);
     }
 
-    #logOutput {
+    #terminalOutput {
       width: 100%;
-      max-width: 1050px;
+      max-width: 1000px;
       margin: 0 auto;
-      color: var(--gray);
-      font-size: clamp(11px, 1.35vw, 15px);
-      line-height: 1.7;
       white-space: pre-wrap;
       word-break: break-word;
+      color: #000000;
+      font-size: clamp(12px, 1.45vw, 16px);
+      line-height: 1.6;
     }
 
-    .logLine {
-      min-height: 1.7em;
+    .outputLine {
+      min-height: 1.6em;
     }
 
-    .logCommand {
-      color: var(--white);
+    .commandLine {
       font-weight: bold;
     }
 
-    .logSystem {
-      color: var(--green);
+    .muted {
+      color: var(--muted);
     }
 
-    .logWarning {
-      color: var(--red);
+    .errorLine {
+      text-decoration: underline;
     }
 
-    .logMuted {
-      color: var(--gray);
-    }
-
-    /* Input terminal bar */
-    #commandBar {
+    /* Bottom input bar */
+    #commandForm {
       position: absolute;
       right: 0;
       bottom: 0;
@@ -229,15 +329,16 @@
       align-items: center;
       gap: 10px;
       min-height: 62px;
-      padding: 0 22px;
-      border-top: 1px solid var(--border);
-      background: rgba(5, 5, 5, 0.97);
-      color: var(--white);
+      padding: 17px 24px;
+      border-top: 2px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-size: clamp(12px, 1.5vw, 17px);
     }
 
     #prompt {
       flex: 0 0 auto;
-      color: var(--green);
+      color: #000000;
       font-weight: bold;
       white-space: nowrap;
     }
@@ -247,149 +348,24 @@
       min-width: 0;
       border: 0;
       outline: 0;
+      padding: 0;
       background: transparent;
-      color: var(--white);
-      caret-color: var(--green);
+      color: #000000;
+      caret-color: #000000;
+      font: inherit;
     }
 
     #commandInput::placeholder {
-      color: #555;
+      color: #555555;
+      opacity: 1;
     }
 
     #cursor {
       width: 10px;
       height: 19px;
       flex: 0 0 auto;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
+      background: #000000;
       animation: blink 0.85s steps(1, end) infinite;
-    }
-
-    /* Glitch effects */
-    #glitchBlocks {
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .glitchBlock {
-      position: absolute;
-      background: #000;
-      opacity: 0;
-      mix-blend-mode: difference;
-    }
-
-    .glitchBlock.active {
-      animation: blockGlitch 0.2s steps(2, end);
-    }
-
-    @keyframes blockGlitch {
-      0% {
-        opacity: 0;
-        transform: translateX(0);
-      }
-
-      20% {
-        opacity: 1;
-      }
-
-      55% {
-        opacity: 0.25;
-        transform: translateX(14px);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translateX(-9px);
-      }
-    }
-
-    #screenFlash {
-      position: fixed;
-      inset: 0;
-      z-index: 190;
-      pointer-events: none;
-      opacity: 0;
-      background: #fff;
-    }
-
-    #screenFlash.active {
-      animation: screenFlashAnimation 0.17s steps(2, end);
-    }
-
-    @keyframes screenFlashAnimation {
-      0% {
-        opacity: 0;
-        background: #fff;
-      }
-
-      25% {
-        opacity: 0.9;
-        background: #000;
-      }
-
-      55% {
-        opacity: 0.65;
-        background: #fff;
-      }
-
-      100% {
-        opacity: 0;
-        background: #000;
-      }
-    }
-
-    #scanlines {
-      position: fixed;
-      inset: 0;
-      z-index: 180;
-      pointer-events: none;
-      opacity: 0.17;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent 0px,
-        transparent 3px,
-        rgba(255, 255, 255, 0.18) 4px
-      );
-      mix-blend-mode: screen;
-      animation: scanMove 0.25s steps(2, end) infinite;
-    }
-
-    @keyframes scanMove {
-      from {
-        background-position: 0 0;
-      }
-
-      to {
-        background-position: 0 12px;
-      }
-    }
-
-    #errorMessage {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      z-index: 300;
-      width: min(550px, 88vw);
-      padding: 22px;
-      transform: translate(-50%, -50%);
-      border: 1px solid var(--red);
-      background: #050505;
-      color: var(--red);
-      box-shadow: 0 0 25px rgba(255, 48, 48, 0.35);
-      text-align: center;
-      white-space: pre-wrap;
-    }
-
-    #errorMessage.visible {
-      display: block;
-    }
-
-    .invert {
-      filter: invert(1);
     }
 
     @keyframes blink {
@@ -404,25 +380,49 @@
       }
     }
 
+    /* Error message */
+    #errorMessage {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 100;
+      width: min(550px, 88vw);
+      padding: 22px;
+      transform: translate(-50%, -50%);
+      border: 2px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      text-align: center;
+      white-space: pre-wrap;
+    }
+
+    #errorMessage.visible {
+      display: block;
+    }
+
+    .invert {
+      filter: invert(1);
+    }
+
     @media (max-width: 600px) {
       #introAscii,
-      #asciiDisplay {
+      #asciiArt {
         font-size: 7px;
       }
 
-      #topBar {
-        min-height: 48px;
-        padding: 0 12px;
-        font-size: 9px;
+      #terminalHeader {
+        padding: 14px;
+        font-size: 10px;
       }
 
       #terminalContent {
-        padding: 20px 12px 110px;
+        padding: 20px 12px 115px;
       }
 
-      #commandBar {
+      #commandForm {
         min-height: 56px;
-        padding: 0 12px;
+        padding: 14px 12px;
       }
 
       #prompt {
@@ -438,8 +438,6 @@
 </head>
 
 <body>
-  <!-- Fictional interface only. It does not access or attack anything. -->
-
   <main id="app">
     <div id="glitchBlocks"></div>
     <div id="screenFlash"></div>
@@ -447,44 +445,41 @@
 
     <section id="introScreen">
       <div id="introBox">
-        <div id="introTitle">INITIALIZING SECURE TERMINAL</div>
+        <div id="introTitle">INITIALIZING ASCII TERMINAL</div>
         <div id="introStatus">CONNECTING...</div>
 
         <pre id="introAscii"></pre>
 
-        <div id="introProgress">
-          <div id="introProgressFill"></div>
+        <div id="loadingBar">
+          <div id="loadingProgress"></div>
         </div>
       </div>
     </section>
 
     <section id="terminalScreen">
-      <header id="topBar">
-        <div id="topLeft">
-          <span class="topDot"></span>
-          <span>LOCAL NODE // TERMINAL-01</span>
-        </div>
+      <header id="terminalHeader">
+        <span>ASCII COMMAND TERMINAL</span>
 
-        <div id="topRight">
-          <span id="warningText">FICTIONAL SIMULATION</span>
-          <span>NO NETWORK</span>
-        </div>
+        <span id="headerStatus">
+          <span id="statusDot"></span>
+          ONLINE
+        </span>
       </header>
 
       <div id="terminalContent">
-        <pre id="asciiDisplay"></pre>
-        <div id="logOutput"></div>
+        <pre id="asciiArt"></pre>
+        <div id="terminalOutput"></div>
       </div>
 
-      <form id="commandBar" autocomplete="off">
-        <span id="prompt">root@node:~#</span>
+      <form id="commandForm" autocomplete="off">
+        <span id="prompt">guest@ascii:~$</span>
 
         <input
           id="commandInput"
           type="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="type help to list commands"
+          placeholder="type help to see commands"
         />
 
         <span id="cursor"></span>
@@ -496,58 +491,49 @@
 
   <script>
     /*
-      Your ASCII is embedded directly here.
-      Replace only the text between the backticks.
-
-      Keep the backticks. Do not use backticks inside the ASCII art.
+      Your TXT file is loaded here.
+      This keeps the ASCII external instead of embedding it in the HTML.
     */
 
-    const ASCII_ART = String.raw`
-     ██████╗██╗██████╗ ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗ ███╗   ██╗
-    ██╔════╝██║██╔══██╗██║  ██║██╔══██╗████╗  ██║██╔═══██╗████╗  ██║
-    ██║     ██║██████╔╝███████║███████║██╔██╗ ██║██║   ██║██╔██╗ ██║
-    ██║     ██║██╔═══╝ ██╔══██║██╔══██║██║╚██╗██║██║   ██║██║╚██╗██║
-    ╚██████╗██║██║     ██║  ██║██║  ██║██║ ╚████║╚██████╔╝██║ ╚████║
-     ╚═════╝╚═╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═══╝
-
-                    // LOCAL TERMINAL INTERFACE //
-`;
+    const asciiFile = "./1000016546-ascii.txt";
 
     const settings = {
-      introDuration: 6500,
-      typingSpeed: 7,
-      glitchChance: 0.85,
-      blockCount: 22,
-      glitchInterval: 115
+      introDuration: 7000,
+      typingSpeed: 8,
+      glitchChance: 0.82,
+      blockCount: 20,
+      glitchInterval: 125
     };
 
     const introScreen = document.getElementById("introScreen");
     const introStatus = document.getElementById("introStatus");
     const introAscii = document.getElementById("introAscii");
-    const introProgressFill = document.getElementById("introProgressFill");
+    const loadingProgress = document.getElementById("loadingProgress");
 
     const terminalScreen = document.getElementById("terminalScreen");
     const terminalContent = document.getElementById("terminalContent");
-    const asciiDisplay = document.getElementById("asciiDisplay");
-    const logOutput = document.getElementById("logOutput");
+    const asciiArt = document.getElementById("asciiArt");
+    const terminalOutput = document.getElementById("terminalOutput");
 
-    const commandBar = document.getElementById("commandBar");
+    const commandForm = document.getElementById("commandForm");
     const commandInput = document.getElementById("commandInput");
 
     const glitchBlocks = document.getElementById("glitchBlocks");
     const screenFlash = document.getElementById("screenFlash");
+    const scanlines = document.getElementById("scanlines");
     const errorMessage = document.getElementById("errorMessage");
 
     const introMessages = [
-      "CONNECTING TO LOCAL NODE...",
-      "VERIFYING DISPLAY BUFFER...",
-      "READING CHARACTER MAP...",
-      "RENDERING ASCII SEQUENCE...",
-      "INJECTING VISUAL NOISE...",
-      "STARTING COMMAND INTERFACE...",
+      "CONNECTING TO TERMINAL...",
+      "CHECKING ASCII FILE...",
+      "READING TEXT DATA...",
+      "RENDERING ASCII...",
+      "APPLYING DISPLAY EFFECTS...",
+      "STARTING COMMAND INPUT...",
       "SYSTEM READY."
     ];
 
+    let asciiText = "";
     let commandHistory = [];
     let historyIndex = -1;
     let glitchTimer = null;
@@ -564,25 +550,36 @@
       });
     }
 
-    function addLog(text = "", className = "") {
-      const line = document.createElement("div");
-      line.className = `logLine ${className}`;
-      line.textContent = text;
-      logOutput.appendChild(line);
-      scrollTerminal();
-    }
-
-    function scrollTerminal() {
-      terminalContent.scrollTop = terminalContent.scrollHeight;
-    }
-
     function showError(message) {
       errorMessage.textContent = message;
       errorMessage.classList.add("visible");
 
       setTimeout(() => {
         errorMessage.classList.remove("visible");
-      }, 6000);
+      }, 7000);
+    }
+
+    /*
+      Loads the TXT file from the same folder as index.html.
+    */
+    async function loadAsciiFile() {
+      const response = await fetch(asciiFile, {
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Could not load ${asciiFile}. HTTP status: ${response.status}`
+        );
+      }
+
+      const text = await response.text();
+
+      if (!text.trim()) {
+        throw new Error("The ASCII TXT file is empty.");
+      }
+
+      return text;
     }
 
     function createGlitchBlocks() {
@@ -604,12 +601,19 @@
 
       const block = blocks[randomNumber(0, blocks.length - 1)];
 
+      block.classList.remove("black", "white", "active");
+
+      if (Math.random() > 0.5) {
+        block.classList.add("black");
+      } else {
+        block.classList.add("white");
+      }
+
       block.style.left = `${randomNumber(-5, 95)}%`;
       block.style.top = `${randomNumber(-5, 95)}%`;
       block.style.width = `${randomNumber(2, 35)}%`;
-      block.style.height = `${randomNumber(1, 17)}%`;
+      block.style.height = `${randomNumber(1, 18)}%`;
 
-      block.classList.remove("active");
       void block.offsetWidth;
       block.classList.add("active");
 
@@ -618,7 +622,7 @@
       }, randomNumber(100, 280));
     }
 
-    function flashScreen() {
+    function flashScreenNow() {
       if (Math.random() > settings.glitchChance) {
         return;
       }
@@ -627,31 +631,34 @@
       void screenFlash.offsetWidth;
       screenFlash.classList.add("active");
 
-      if (Math.random() > 0.45) {
+      if (Math.random() > 0.5) {
         document.body.classList.add("invert");
 
         setTimeout(() => {
           document.body.classList.remove("invert");
-        }, randomNumber(50, 160));
+        }, randomNumber(50, 170));
       }
     }
 
     function startGlitches() {
       createGlitchBlocks();
+      scanlines.classList.add("active");
 
       glitchTimer = setInterval(() => {
         flashRandomBlock();
-        flashScreen();
+        flashScreenNow();
       }, settings.glitchInterval);
     }
 
     function stopGlitches() {
       clearInterval(glitchTimer);
       glitchTimer = null;
+      scanlines.classList.remove("active");
       document.body.classList.remove("invert");
+      screenFlash.classList.remove("active");
     }
 
-    async function typeIntro(text, runId) {
+    async function typeIntroAscii(text, runId) {
       introAscii.textContent = "";
 
       for (let i = 0; i < text.length; i++) {
@@ -661,12 +668,12 @@
 
         introAscii.textContent += text[i];
 
-        if (i % 13 === 0) {
+        if (i % 15 === 0) {
           flashRandomBlock();
         }
 
-        if (i % 29 === 0) {
-          flashScreen();
+        if (i % 32 === 0) {
+          flashScreenNow();
         }
 
         await wait(settings.typingSpeed);
@@ -679,12 +686,15 @@
 
       introComplete = false;
       introAscii.textContent = "";
-      introProgressFill.style.width = "0%";
+      loadingProgress.style.width = "0%";
       introStatus.textContent = "CONNECTING...";
 
       startGlitches();
 
-      const typingPromise = typeIntro(ASCII_ART, runId);
+      const typingPromise = typeIntroAscii(
+        asciiText || "ASCII FILE COULD NOT BE LOADED",
+        runId
+      );
 
       const progressTimer = setInterval(() => {
         if (runId !== introRunId) {
@@ -693,24 +703,24 @@
         }
 
         const elapsed = Date.now() - startTime;
-        const progress = Math.min(
+        const percentage = Math.min(
           100,
           (elapsed / settings.introDuration) * 100
         );
 
-        introProgressFill.style.width = `${progress}%`;
+        loadingProgress.style.width = `${percentage}%`;
 
         const messageIndex = Math.min(
           introMessages.length - 1,
-          Math.floor((progress / 100) * introMessages.length)
+          Math.floor((percentage / 100) * introMessages.length)
         );
 
         introStatus.textContent = introMessages[messageIndex];
 
-        if (progress >= 100) {
+        if (percentage >= 100) {
           clearInterval(progressTimer);
         }
-      }, 60);
+      }, 70);
 
       await typingPromise;
 
@@ -737,42 +747,38 @@
       introScreen.classList.add("hidden");
       terminalScreen.classList.add("visible");
 
-      asciiDisplay.textContent = ASCII_ART;
+      asciiArt.textContent = asciiText;
 
       setTimeout(() => {
-        addLog("[ OK ] Local terminal initialized.", "logSystem");
-        addLog("[WARN] This is a fictional interface.", "logWarning");
-        addLog('[INFO] Type "help" to list available commands.', "logMuted");
-        addLog("");
+        addOutput("System ready.");
+        addOutput(`Loaded: ${asciiFile}`, "muted");
+        addOutput('Type "help" to see available commands.', "muted");
+        addOutput("");
         commandInput.focus();
       }, 700);
     }
 
-    function commandHelp() {
-      addLog("AVAILABLE COMMANDS", "logSystem");
-      addLog("------------------", "logMuted");
-      addLog("help       Show available commands");
-      addLog("clear      Clear the terminal");
-      addLog("ascii      Redisplay the ASCII");
-      addLog("about      Display interface information");
-      addLog("status     Display simulated system status");
-      addLog("date       Display the current date and time");
-      addLog("echo TEXT  Print text to the terminal");
-      addLog("whoami     Display the current user");
-      addLog("glitch     Trigger a visual glitch");
-      addLog("reboot     Restart the interface");
-      addLog("");
+    function addOutput(text = "", className = "") {
+      const line = document.createElement("div");
+      line.className = `outputLine ${className}`;
+      line.textContent = text;
+      terminalOutput.appendChild(line);
+      scrollTerminal();
     }
 
-    function runCommand(rawCommand) {
+    function scrollTerminal() {
+      terminalContent.scrollTop = terminalContent.scrollHeight;
+    }
+
+    function executeCommand(rawCommand) {
       const commandLine = rawCommand.trim();
 
       if (!commandLine) {
-        addLog("");
+        addOutput("");
         return;
       }
 
-      addLog(`root@node:~# ${commandLine}`, "logCommand");
+      addOutput(`guest@ascii:~$ ${commandLine}`, "commandLine");
 
       const parts = commandLine.split(/\s+/);
       const command = parts[0].toLowerCase();
@@ -781,81 +787,93 @@
       switch (command) {
         case "help":
         case "?":
-          commandHelp();
+          addOutput("AVAILABLE COMMANDS");
+          addOutput("------------------");
+          addOutput("help       Show available commands");
+          addOutput("clear      Clear terminal output");
+          addOutput("ascii      Redisplay the ASCII");
+          addOutput("about      Show terminal information");
+          addOutput("status     Show simulated status");
+          addOutput("date       Show the current date and time");
+          addOutput("echo TEXT  Print text");
+          addOutput("whoami     Show the current user");
+          addOutput("glitch     Trigger a visual glitch");
+          addOutput("reboot     Restart the intro sequence");
+          addOutput("");
           break;
 
         case "clear":
         case "cls":
-          logOutput.innerHTML = "";
+          terminalOutput.innerHTML = "";
           break;
 
         case "ascii":
         case "show":
-          asciiDisplay.textContent = ASCII_ART;
-          addLog("[ OK ] ASCII buffer refreshed.", "logSystem");
+          asciiArt.textContent = asciiText;
+          addOutput("ASCII display refreshed.");
           break;
 
         case "about":
-          addLog("LOCAL TERMINAL INTERFACE");
-          addLog("Visual simulation only.");
-          addLog("No network connections are used.");
-          addLog("");
+          addOutput("ASCII COMMAND TERMINAL");
+          addOutput("White background / black text interface.");
+          addOutput("The TXT file is loaded from the local project folder.");
+          addOutput("Visual effects are fictional and local only.");
+          addOutput("");
           break;
 
         case "status":
-          addLog("DISPLAY       ONLINE", "logSystem");
-          addLog("ASCII BUFFER  READY", "logSystem");
-          addLog("INPUT         READY", "logSystem");
-          addLog("NETWORK       DISABLED", "logWarning");
-          addLog("");
+          addOutput("ASCII FILE   LOADED");
+          addOutput("DISPLAY      ONLINE");
+          addOutput("INPUT        READY");
+          addOutput("NETWORK      NOT USED");
+          addOutput("");
           break;
 
         case "date":
         case "time":
-          addLog(new Date().toString());
+          addOutput(new Date().toString());
           break;
 
         case "echo":
-          addLog(argument);
+          addOutput(argument);
           break;
 
         case "whoami":
-          addLog("root");
+          addOutput("guest");
           break;
 
         case "glitch":
           flashRandomBlock();
-          flashScreen();
-          addLog("[ OK ] Visual glitch triggered.", "logSystem");
+          flashScreenNow();
+          addOutput("Glitch effect triggered.");
           break;
 
         case "reboot":
         case "restart":
-          reboot();
+          rebootTerminal();
           break;
 
         default:
-          addLog(
-            `[ERR] Command not found: ${command}`,
-            "logWarning"
+          addOutput(
+            `Command not found: ${command}. Type "help" for commands.`,
+            "errorLine"
           );
-          addLog('[INFO] Type "help" for available commands.', "logMuted");
       }
     }
 
-    async function reboot() {
+    async function rebootTerminal() {
       introRunId++;
       stopGlitches();
 
       terminalScreen.classList.remove("visible");
       introScreen.classList.remove("hidden");
-      logOutput.innerHTML = "";
+      terminalOutput.innerHTML = "";
 
-      await wait(500);
+      await wait(450);
       runIntro();
     }
 
-    commandBar.addEventListener("submit", (event) => {
+    commandForm.addEventListener("submit", (event) => {
       event.preventDefault();
 
       const command = commandInput.value;
@@ -865,7 +883,7 @@
       }
 
       historyIndex = commandHistory.length;
-      runCommand(command);
+      executeCommand(command);
 
       commandInput.value = "";
       commandInput.focus();
@@ -935,13 +953,43 @@
       }
     });
 
-    function start() {
-      if (!ASCII_ART.trim()) {
-        showError("ASCII ART IS EMPTY");
-      }
+    async function start() {
+      try {
+        introStatus.textContent = "LOADING ASCII FILE...";
+        asciiText = await loadAsciiFile();
+        runIntro();
+      } catch (error) {
+        console.error(error);
 
-      runIntro();
+        asciiText =
+          "ASCII FILE ERROR\n\n" +
+          "Could not load 1000016546-ascii.txt";
+
+        showError(
+          "ASCII FILE ERROR\n\n" +
+          "Make sure this file is beside index.html:\n\n" +
+          "1000016546-ascii.txt"
+        );
+
+        runIntro();
+      }
     }
+
+    /*
+      Important:
+      If you open index.html by double-clicking it, some browsers block
+      loading local TXT files with fetch().
+
+      Run the folder with a local server:
+
+      python -m http.server
+
+      Then open:
+
+      http://localhost:8000
+
+      GitHub Pages should load it normally.
+    */
 
     window.addEventListener("load", start);
   </script>
