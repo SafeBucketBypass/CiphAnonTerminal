@@ -7,8 +7,9 @@
 
   <style>
     :root {
-      --background: #ffffff;
-      --foreground: #000000;
+      --bg: #ffffff;
+      --fg: #000000;
+      --gray: #777777;
     }
 
     * {
@@ -21,243 +22,332 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--background);
-      color: var(--foreground);
+      background: var(--bg);
+      color: var(--fg);
       font-family: "Courier New", Courier, monospace;
     }
 
     body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
       transition:
-        background-color 0.08s linear,
-        color 0.08s linear;
+        background-color 0.06s linear,
+        color 0.06s linear,
+        filter 0.06s linear;
     }
 
     #app {
       position: relative;
       width: 100%;
       height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: inherit;
+      overflow: hidden;
+      background: var(--bg);
     }
 
-    /* Opening flash/glitch effect */
-    #glitchOverlay {
+    /* Random glitch blocks */
+    #glitchBlocks {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .glitchBlock {
+      position: absolute;
+      background: #000;
+      opacity: 0;
+      mix-blend-mode: difference;
+      pointer-events: none;
+    }
+
+    .glitchBlock.active {
+      animation: blockFlash 0.18s steps(2, end);
+    }
+
+    @keyframes blockFlash {
+      0% {
+        opacity: 0;
+        transform: translateX(0);
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      55% {
+        opacity: 0.25;
+        transform: translateX(12px);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateX(-8px);
+      }
+    }
+
+    /* Scan lines and glitch overlay */
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 25;
+      pointer-events: none;
+      opacity: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.13) 4px
+      );
+      mix-blend-mode: multiply;
+    }
+
+    #scanlines.active {
+      opacity: 1;
+      animation: scanMove 0.2s steps(2, end) infinite;
+    }
+
+    @keyframes scanMove {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 0 12px;
+      }
+    }
+
+    #screenGlitch {
       position: fixed;
       inset: 0;
       z-index: 20;
       pointer-events: none;
-      background: #fff;
-      opacity: 1;
-    }
-
-    #glitchOverlay::before,
-    #glitchOverlay::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    #glitchOverlay::before {
-      background:
-        repeating-linear-gradient(
-          0deg,
-          rgba(0, 0, 0, 0.05) 0px,
-          rgba(0, 0, 0, 0.05) 1px,
-          transparent 1px,
-          transparent 4px
-        );
-      mix-blend-mode: multiply;
-    }
-
-    #glitchOverlay::after {
-      background:
-        linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(0, 0, 0, 0.15) 48%,
-          transparent 52%
-        );
       opacity: 0;
+      background: #000;
     }
 
-    .glitching {
-      animation: screenGlitch 0.12s steps(2, end) infinite;
-    }
-
-    .glitching::after {
+    #screenGlitch.active {
       opacity: 1;
-      animation: scanShift 0.09s steps(2, end) infinite;
+      animation: screenFlash 0.16s steps(2, end);
     }
 
-    @keyframes screenGlitch {
+    @keyframes screenFlash {
       0% {
-        background: #fff;
-        filter: contrast(1);
+        opacity: 0;
+        background: #000;
       }
 
       25% {
-        background: #000;
-        filter: contrast(2) invert(1);
-      }
-
-      50% {
+        opacity: 0.9;
         background: #fff;
-        filter: contrast(3);
       }
 
-      75% {
+      55% {
+        opacity: 0.5;
         background: #000;
-        filter: invert(1);
       }
 
       100% {
+        opacity: 0;
         background: #fff;
-        filter: contrast(1);
       }
     }
 
-    @keyframes scanShift {
-      0% {
-        transform: translateX(-20%);
-      }
-
-      50% {
-        transform: translateX(20%);
-      }
-
-      100% {
-        transform: translateX(-10%);
-      }
-    }
-
-    /* Loading screen */
-    #loadingScreen {
+    /* Intro screen */
+    #introScreen {
       position: absolute;
-      z-index: 10;
       inset: 0;
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 30px;
       background: #fff;
       color: #000;
-      transition: opacity 0.8s ease, visibility 0.8s ease;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
     }
 
-    #loadingScreen.hidden {
+    #introScreen.hidden {
       opacity: 0;
       visibility: hidden;
     }
 
-    .loadingBox {
-      width: min(680px, 85vw);
+    #introBox {
+      width: min(1000px, 94vw);
       text-align: center;
-      font-size: clamp(12px, 2vw, 18px);
-      letter-spacing: 2px;
     }
 
-    .loadingTitle {
+    #introTitle {
+      margin-bottom: 22px;
+      font-size: clamp(12px, 2vw, 19px);
+      letter-spacing: 3px;
+      font-weight: bold;
+    }
+
+    #introStatus {
+      min-height: 25px;
       margin-bottom: 20px;
+      color: #333;
+      font-size: clamp(11px, 1.4vw, 15px);
+      letter-spacing: 1px;
     }
 
-    #loadingText {
-      min-height: 24px;
+    #introAscii {
+      max-width: 100%;
+      max-height: 55vh;
+      margin: 0 auto;
+      overflow: hidden;
+      white-space: pre;
+      text-align: center;
+      font-size: clamp(7px, 1.15vw, 17px);
+      line-height: 1.12;
+      font-weight: bold;
+      text-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
     }
 
-    .progressBar {
-      width: 100%;
+    #introLoading {
+      width: min(680px, 90vw);
       height: 14px;
-      margin-top: 20px;
-      border: 2px solid #000;
+      margin: 28px auto 0;
       padding: 2px;
+      border: 2px solid #000;
     }
 
-    #progressFill {
+    #introLoadingFill {
       width: 0%;
       height: 100%;
       background: #000;
-      transition: width 0.15s linear;
+      transition: width 0.08s linear;
     }
 
-    /* ASCII content */
-    #asciiScreen {
+    /* Main terminal */
+    #terminalScreen {
       position: absolute;
       inset: 0;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 30px 110px;
+      flex-direction: column;
       background: #fff;
       color: #000;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 1s ease, visibility 1s ease;
+      transition: opacity 0.9s ease, visibility 0.9s ease;
     }
 
-    #asciiScreen.visible {
+    #terminalScreen.visible {
       opacity: 1;
       visibility: visible;
+    }
+
+    #terminalHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 17px 24px;
+      border-bottom: 2px solid #000;
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .onlineStatus {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .onlineDot {
+      width: 9px;
+      height: 9px;
+      background: #000;
+      animation: blink 0.8s steps(1, end) infinite;
+    }
+
+    #terminalContent {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px clamp(16px, 7vw, 120px) 120px;
+      scroll-behavior: smooth;
     }
 
     #asciiArt {
-      max-width: 95vw;
-      max-height: 75vh;
-      margin: 0;
-      overflow: auto;
+      max-width: 100%;
+      margin: 0 auto 32px;
+      overflow-x: auto;
       white-space: pre;
       text-align: center;
-      font-family: "Courier New", Courier, monospace;
-      font-size: clamp(8px, 1.25vw, 18px);
-      line-height: 1.15;
+      font-size: clamp(7px, 1.15vw, 17px);
+      line-height: 1.12;
       font-weight: bold;
-      text-shadow: 0 0 2px rgba(0, 0, 0, 0.35);
-      scrollbar-width: thin;
     }
 
-    /* Bottom terminal prompt */
-    #terminalBar {
+    #output {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: clamp(12px, 1.45vw, 16px);
+      line-height: 1.6;
+    }
+
+    .outputLine {
+      min-height: 1.6em;
+    }
+
+    .commandLine {
+      font-weight: bold;
+    }
+
+    .muted {
+      color: var(--gray);
+    }
+
+    .error {
+      text-decoration: underline;
+    }
+
+    /* Terminal input */
+    #inputBar {
       position: absolute;
-      z-index: 5;
-      left: 0;
       right: 0;
-      bottom: 24px;
-      display: flex;
-      justify-content: center;
-      color: #000;
-      font-size: clamp(12px, 1.7vw, 18px);
-      letter-spacing: 1px;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.8s ease, visibility 0.8s ease;
-    }
-
-    #terminalBar.visible {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .terminalPrompt {
+      bottom: 0;
+      left: 0;
+      z-index: 8;
       display: flex;
       align-items: center;
-      gap: 9px;
-      min-height: 26px;
+      gap: 10px;
+      padding: 17px 24px;
+      border-top: 2px solid #000;
+      background: rgba(255, 255, 255, 0.97);
+      font-size: clamp(12px, 1.5vw, 17px);
     }
 
-    .terminalIcon {
-      display: inline-block;
-      width: 13px;
-      height: 13px;
-      border: 2px solid #000;
+    #promptLabel {
+      flex: 0 0 auto;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    #commandInput {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      padding: 0;
+      background: transparent;
+      color: #000;
+      font: inherit;
+      caret-color: #000;
+    }
+
+    #commandInput::placeholder {
+      color: #777;
+      opacity: 1;
+    }
+
+    .inputCursor {
+      width: 10px;
+      height: 19px;
+      flex: 0 0 auto;
+      background: #000;
       animation: blink 0.85s steps(1, end) infinite;
-    }
-
-    .terminalText {
-      animation: blinkText 1.2s steps(1, end) infinite;
     }
 
     @keyframes blink {
@@ -272,29 +362,18 @@
       }
     }
 
-    @keyframes blinkText {
-      0%,
-      55% {
-        opacity: 1;
-      }
-
-      56%,
-      100% {
-        opacity: 0.35;
-      }
-    }
-
-    /* Error message */
     #errorMessage {
       display: none;
-      position: absolute;
-      z-index: 30;
-      max-width: 85vw;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 50;
+      width: min(500px, 86vw);
       padding: 20px;
+      transform: translate(-50%, -50%);
       border: 2px solid #000;
       background: #fff;
       color: #000;
-      font-family: "Courier New", monospace;
       text-align: center;
       white-space: pre-wrap;
     }
@@ -303,24 +382,36 @@
       display: block;
     }
 
-    /* Optional black-and-white inversion glitch */
     .invert {
       filter: invert(1);
     }
 
     @media (max-width: 600px) {
-      #asciiScreen {
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-
+      #introAscii,
       #asciiArt {
         font-size: 7px;
       }
 
-      #terminalBar {
-        bottom: 14px;
+      #terminalHeader {
+        padding: 14px;
+        font-size: 10px;
+      }
+
+      #terminalContent {
+        padding: 20px 12px 115px;
+      }
+
+      #inputBar {
+        padding: 14px 12px;
+      }
+
+      #promptLabel {
         font-size: 11px;
+      }
+
+      .inputCursor {
+        width: 8px;
+        height: 15px;
       }
     }
   </style>
@@ -328,115 +419,222 @@
 
 <body>
   <main id="app">
-    <div id="glitchOverlay"></div>
+    <div id="glitchBlocks"></div>
+    <div id="scanlines"></div>
+    <div id="screenGlitch"></div>
 
-    <section id="loadingScreen">
-      <div class="loadingBox">
-        <div class="loadingTitle">INITIALIZING ASCII TERMINAL</div>
-        <div id="loadingText">BOOTING SYSTEM...</div>
+    <section id="introScreen">
+      <div id="introBox">
+        <div id="introTitle">INITIALIZING ASCII TERMINAL</div>
+        <div id="introStatus">CONNECTING...</div>
 
-        <div class="progressBar">
-          <div id="progressFill"></div>
+        <pre id="introAscii"></pre>
+
+        <div id="introLoading">
+          <div id="introLoadingFill"></div>
         </div>
       </div>
     </section>
 
-    <section id="asciiScreen">
-      <pre id="asciiArt"></pre>
-    </section>
+    <section id="terminalScreen">
+      <header id="terminalHeader">
+        <span>ASCII COMMAND TERMINAL</span>
 
-    <div id="terminalBar">
-      <div class="terminalPrompt">
-        <span class="terminalIcon"></span>
-        <span class="terminalText">_ TERMINAL READY</span>
+        <span class="onlineStatus">
+          <span class="onlineDot"></span>
+          ONLINE
+        </span>
+      </header>
+
+      <div id="terminalContent">
+        <pre id="asciiArt"></pre>
+        <div id="output"></div>
       </div>
-    </div>
+
+      <form id="inputBar" autocomplete="off">
+        <span id="promptLabel">guest@ascii:~$</span>
+
+        <input
+          id="commandInput"
+          type="text"
+          spellcheck="false"
+          autocomplete="off"
+          placeholder="type help to see commands"
+        />
+
+        <span class="inputCursor"></span>
+      </form>
+    </section>
 
     <div id="errorMessage"></div>
   </main>
 
   <script>
     /*
-      Add your ASCII text filenames here.
-
-      Example:
-      const asciiFiles = [
-        "ascii1.txt",
-        "ascii2.txt",
-        "logo.txt"
-      ];
+      Put your TXT file in the same folder as this HTML file.
+      Your current file is already included below.
     */
 
     const asciiFiles = [
-      "ascii.txt"
+      "1000016546-ascii.txt"
     ];
 
     const settings = {
-      glitchDuration: 2600,
-      loadingDuration: 4300,
-      glitchFlashSpeed: 110,
-      glitchChance: 0.75,
-      changeAsciiEvery: 0
-      // Set changeAsciiEvery to a number such as 8000
-      // to automatically switch between multiple ASCII files.
+      introDuration: 7000,
+      typingSpeed: 10,
+      glitchChance: 0.82,
+      blockCount: 16,
+      glitchInterval: 130
     };
 
-    const glitchOverlay = document.getElementById("glitchOverlay");
-    const loadingScreen = document.getElementById("loadingScreen");
-    const loadingText = document.getElementById("loadingText");
-    const progressFill = document.getElementById("progressFill");
-    const asciiScreen = document.getElementById("asciiScreen");
+    const introScreen = document.getElementById("introScreen");
+    const introStatus = document.getElementById("introStatus");
+    const introAscii = document.getElementById("introAscii");
+    const introLoadingFill = document.getElementById("introLoadingFill");
+
+    const terminalScreen = document.getElementById("terminalScreen");
+    const terminalContent = document.getElementById("terminalContent");
     const asciiArt = document.getElementById("asciiArt");
-    const terminalBar = document.getElementById("terminalBar");
+    const output = document.getElementById("output");
+    const inputBar = document.getElementById("inputBar");
+    const commandInput = document.getElementById("commandInput");
+
+    const glitchBlocks = document.getElementById("glitchBlocks");
+    const scanlines = document.getElementById("scanlines");
+    const screenGlitch = document.getElementById("screenGlitch");
     const errorMessage = document.getElementById("errorMessage");
 
-    const loadingMessages = [
-      "BOOTING SYSTEM...",
-      "CHECKING ASCII DATA...",
-      "LOADING TEXT FILES...",
-      "CALIBRATING TERMINAL...",
-      "STARTING DISPLAY...",
+    const introMessages = [
+      "CONNECTING TO TERMINAL...",
+      "SEARCHING FOR ASCII DATA...",
+      "READING TEXT FILE...",
+      "RENDERING CHARACTER MAP...",
+      "INJECTING DISPLAY EFFECTS...",
+      "LOADING COMMAND INTERFACE...",
       "SYSTEM READY."
     ];
 
     let loadedAscii = [];
     let currentAsciiIndex = 0;
-    let loadingStarted = false;
+    let commandHistory = [];
+    let historyIndex = -1;
+    let introFinished = false;
+    let glitchTimer = null;
 
     function randomNumber(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function wait(milliseconds) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, milliseconds);
+      });
+    }
+
     function showError(message) {
       errorMessage.textContent = message;
       errorMessage.classList.add("visible");
+
+      setTimeout(() => {
+        errorMessage.classList.remove("visible");
+      }, 5000);
     }
 
     async function loadAsciiFiles() {
-      const results = [];
+      const files = [];
 
-      for (const file of asciiFiles) {
+      for (const filename of asciiFiles) {
         try {
-          const response = await fetch(file, { cache: "no-store" });
+          const response = await fetch(filename, {
+            cache: "no-store"
+          });
 
           if (!response.ok) {
-            throw new Error(`Could not load ${file}`);
+            throw new Error(`Could not load ${filename}`);
           }
 
-          const text = await response.text();
-          results.push(text);
+          files.push(await response.text());
         } catch (error) {
           console.warn(error);
         }
       }
 
-      return results;
+      return files;
     }
 
-    function displayAscii(index) {
+    function createGlitchBlocks() {
+      glitchBlocks.innerHTML = "";
+
+      for (let i = 0; i < settings.blockCount; i++) {
+        const block = document.createElement("div");
+        block.className = "glitchBlock";
+        glitchBlocks.appendChild(block);
+      }
+    }
+
+    function flashRandomBlock() {
+      const blocks = document.querySelectorAll(".glitchBlock");
+
+      if (!blocks.length || Math.random() > settings.glitchChance) {
+        return;
+      }
+
+      const block =
+        blocks[randomNumber(0, blocks.length - 1)];
+
+      block.style.left = `${randomNumber(-5, 95)}%`;
+      block.style.top = `${randomNumber(-5, 95)}%`;
+      block.style.width = `${randomNumber(2, 30)}%`;
+      block.style.height = `${randomNumber(1, 16)}%`;
+
+      block.classList.remove("active");
+      void block.offsetWidth;
+      block.classList.add("active");
+
+      setTimeout(() => {
+        block.classList.remove("active");
+      }, randomNumber(100, 260));
+    }
+
+    function flashScreen() {
+      if (Math.random() > settings.glitchChance) {
+        return;
+      }
+
+      screenGlitch.classList.remove("active");
+      void screenGlitch.offsetWidth;
+      screenGlitch.classList.add("active");
+
+      if (Math.random() > 0.45) {
+        document.body.classList.add("invert");
+
+        setTimeout(() => {
+          document.body.classList.remove("invert");
+        }, randomNumber(50, 180));
+      }
+    }
+
+    function startGlitchEffects() {
+      createGlitchBlocks();
+      scanlines.classList.add("active");
+
+      glitchTimer = setInterval(() => {
+        flashRandomBlock();
+        flashScreen();
+      }, settings.glitchInterval);
+    }
+
+    function stopGlitchEffects() {
+      clearInterval(glitchTimer);
+      glitchTimer = null;
+      scanlines.classList.remove("active");
+      document.body.classList.remove("invert");
+    }
+
+    function displayAscii(index = 0) {
       if (!loadedAscii.length) {
         asciiArt.textContent =
-          "NO ASCII FILES FOUND\n\nPlace your .txt files beside index.html.";
+          "NO ASCII FILE FOUND\n\nPlace 1000016546-ascii.txt beside index.html.";
         return;
       }
 
@@ -446,124 +644,326 @@
       asciiArt.textContent = loadedAscii[currentAsciiIndex];
     }
 
-    function createRandomGlitch() {
-      if (Math.random() > settings.glitchChance) {
+    async function typeAscii(text) {
+      introAscii.textContent = "";
+
+      for (let i = 0; i < text.length; i++) {
+        introAscii.textContent += text[i];
+
+        if (i % 18 === 0) {
+          flashRandomBlock();
+        }
+
+        if (i % 35 === 0) {
+          flashScreen();
+        }
+
+        await wait(settings.typingSpeed);
+      }
+    }
+
+    async function runIntro() {
+      startGlitchEffects();
+
+      const introStart = Date.now();
+      const asciiText = loadedAscii[0] || "NO ASCII DATA FOUND";
+
+      const typingPromise = typeAscii(asciiText);
+
+      const progressTimer = setInterval(() => {
+        const elapsed = Date.now() - introStart;
+        const progress = Math.min(
+          100,
+          (elapsed / settings.introDuration) * 100
+        );
+
+        introLoadingFill.style.width = `${progress}%`;
+
+        const messageIndex = Math.min(
+          introMessages.length - 1,
+          Math.floor((progress / 100) * introMessages.length)
+        );
+
+        introStatus.textContent = introMessages[messageIndex];
+
+        if (progress >= 100) {
+          clearInterval(progressTimer);
+        }
+      }, 70);
+
+      await typingPromise;
+
+      const remainingTime =
+        settings.introDuration - (Date.now() - introStart);
+
+      if (remainingTime > 0) {
+        await wait(remainingTime);
+      }
+
+      finishIntro();
+    }
+
+    function finishIntro() {
+      if (introFinished) {
         return;
       }
 
-      const invertScreen = Math.random() > 0.5;
-      const glitchTime = randomNumber(50, 180);
+      introFinished = true;
+      stopGlitchEffects();
 
-      if (invertScreen) {
-        document.body.classList.add("invert");
-      }
-
-      setTimeout(() => {
-        document.body.classList.remove("invert");
-      }, glitchTime);
-    }
-
-    function startGlitchEffect() {
-      glitchOverlay.classList.add("glitching");
-
-      const glitchInterval = setInterval(() => {
-        createRandomGlitch();
-      }, settings.glitchFlashSpeed);
-
-      setTimeout(() => {
-        clearInterval(glitchInterval);
-        glitchOverlay.classList.remove("glitching");
-        glitchOverlay.style.opacity = "0";
-      }, settings.glitchDuration);
-    }
-
-    function runLoadingAnimation() {
-      const startTime = Date.now();
-      const endTime = startTime + settings.loadingDuration;
-
-      const loadingInterval = setInterval(() => {
-        const now = Date.now();
-        const percentage = Math.min(
-          100,
-          ((now - startTime) / settings.loadingDuration) * 100
-        );
-
-        progressFill.style.width = `${percentage}%`;
-
-        const messageIndex = Math.min(
-          loadingMessages.length - 1,
-          Math.floor((percentage / 100) * loadingMessages.length)
-        );
-
-        loadingText.textContent = loadingMessages[messageIndex];
-
-        if (now >= endTime) {
-          clearInterval(loadingInterval);
-          finishLoading();
-        }
-      }, 80);
-    }
-
-    function finishLoading() {
-      loadingScreen.classList.add("hidden");
-      asciiScreen.classList.add("visible");
-      terminalBar.classList.add("visible");
+      introScreen.classList.add("hidden");
+      terminalScreen.classList.add("visible");
 
       displayAscii(0);
 
-      if (
-        settings.changeAsciiEvery > 0 &&
-        loadedAscii.length > 1
-      ) {
-        setInterval(() => {
-          asciiScreen.classList.remove("visible");
-
-          setTimeout(() => {
-            displayAscii(currentAsciiIndex + 1);
-            asciiScreen.classList.add("visible");
-          }, 350);
-        }, settings.changeAsciiEvery);
-      }
+      setTimeout(() => {
+        addOutput("System ready.");
+        addOutput('Type "help" to see available commands.', "muted");
+        addOutput("");
+        commandInput.focus();
+      }, 700);
     }
 
-    async function startTerminal() {
-      if (loadingStarted) {
+    function addOutput(text = "", className = "") {
+      const line = document.createElement("div");
+      line.className = `outputLine ${className}`;
+      line.textContent = text;
+      output.appendChild(line);
+      scrollToBottom();
+    }
+
+    function addCommand(command) {
+      addOutput(`guest@ascii:~$ ${command}`, "commandLine");
+    }
+
+    function scrollToBottom() {
+      terminalContent.scrollTop = terminalContent.scrollHeight;
+    }
+
+    function commandHelp() {
+      addOutput("AVAILABLE COMMANDS");
+      addOutput("------------------");
+      addOutput("help       Show all commands");
+      addOutput("clear      Clear terminal output");
+      addOutput("ascii      Display the ASCII art");
+      addOutput("next       Show the next ASCII file");
+      addOutput("list       List loaded ASCII files");
+      addOutput("about      Show terminal information");
+      addOutput("date       Show the current date and time");
+      addOutput("echo TEXT  Print text to the screen");
+      addOutput("whoami     Show the current user");
+      addOutput("glitch     Trigger a glitch effect");
+      addOutput("reboot     Restart the intro sequence");
+      addOutput("");
+    }
+
+    function executeCommand(rawCommand) {
+      const commandLine = rawCommand.trim();
+
+      if (!commandLine) {
+        addOutput("");
         return;
       }
 
-      loadingStarted = true;
+      addCommand(commandLine);
 
-      startGlitchEffect();
+      const parts = commandLine.split(/\s+/);
+      const command = parts[0].toLowerCase();
+      const argument = parts.slice(1).join(" ");
 
+      switch (command) {
+        case "help":
+        case "?":
+          commandHelp();
+          break;
+
+        case "clear":
+        case "cls":
+          output.innerHTML = "";
+          break;
+
+        case "ascii":
+        case "show":
+          displayAscii(currentAsciiIndex);
+          addOutput("ASCII display refreshed.");
+          break;
+
+        case "next":
+          if (loadedAscii.length < 2) {
+            addOutput("Only one ASCII file is loaded.", "muted");
+          } else {
+            displayAscii(currentAsciiIndex + 1);
+            addOutput(`Displayed ASCII file ${currentAsciiIndex + 1}.`);
+          }
+          break;
+
+        case "list":
+        case "ls":
+          addOutput("LOADED ASCII FILES");
+
+          asciiFiles.forEach((file, index) => {
+            const marker = index === currentAsciiIndex ? "*" : " ";
+            addOutput(`${marker} ${file}`);
+          });
+
+          addOutput("");
+          break;
+
+        case "about":
+          addOutput("ASCII COMMAND TERMINAL");
+          addOutput("Interactive monochrome terminal interface.");
+          addOutput("The intro includes typed ASCII and random glitches.");
+          addOutput("");
+          break;
+
+        case "date":
+        case "time":
+          addOutput(new Date().toString());
+          break;
+
+        case "echo":
+          addOutput(argument);
+          break;
+
+        case "whoami":
+          addOutput("guest");
+          break;
+
+        case "glitch":
+          flashScreen();
+          flashRandomBlock();
+          addOutput("Glitch effect triggered.");
+          break;
+
+        case "reboot":
+        case "restart":
+          reboot();
+          break;
+
+        default:
+          addOutput(
+            `Command not found: ${command}. Type "help" for commands.`,
+            "error"
+          );
+      }
+    }
+
+    async function reboot() {
+      terminalScreen.classList.remove("visible");
+      introScreen.classList.remove("hidden");
+      introAscii.textContent = "";
+      introLoadingFill.style.width = "0%";
+      introFinished = false;
+
+      await wait(500);
+      runIntro();
+    }
+
+    inputBar.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const command = commandInput.value;
+
+      if (command.trim()) {
+        commandHistory.push(command);
+      }
+
+      historyIndex = commandHistory.length;
+      executeCommand(command);
+
+      commandInput.value = "";
+      commandInput.focus();
+    });
+
+    commandInput.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+
+        if (!commandHistory.length) {
+          return;
+        }
+
+        historyIndex = Math.max(0, historyIndex - 1);
+        commandInput.value = commandHistory[historyIndex];
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+
+        if (!commandHistory.length) {
+          return;
+        }
+
+        historyIndex = Math.min(
+          commandHistory.length,
+          historyIndex + 1
+        );
+
+        commandInput.value =
+          historyIndex === commandHistory.length
+            ? ""
+            : commandHistory[historyIndex];
+      }
+
+      if (event.key === "Tab") {
+        event.preventDefault();
+
+        const commands = [
+          "help",
+          "clear",
+          "ascii",
+          "next",
+          "list",
+          "about",
+          "date",
+          "echo ",
+          "whoami",
+          "glitch",
+          "reboot"
+        ];
+
+        const currentText = commandInput.value.toLowerCase();
+
+        const match = commands.find((command) =>
+          command.startsWith(currentText)
+        );
+
+        if (match) {
+          commandInput.value = match;
+        }
+      }
+    });
+
+    document.addEventListener("click", () => {
+      if (terminalScreen.classList.contains("visible")) {
+        commandInput.focus();
+      }
+    });
+
+    async function start() {
       loadedAscii = await loadAsciiFiles();
 
       if (!loadedAscii.length) {
         showError(
-          "ASCII FILE ERROR\n\nMake sure your .txt file is in the same folder as index.html."
+          "ASCII FILE ERROR\n\nMake sure 1000016546-ascii.txt is in the same folder as index.html."
         );
       }
 
-      runLoadingAnimation();
+      runIntro();
     }
 
     /*
-      Browsers may block fetch() when opening index.html directly
-      with a file:// URL.
+      If the TXT file does not load when opening index.html directly,
+      run this inside the project folder:
 
-      If that happens, run a local server instead:
       python -m http.server
 
       Then open:
+
       http://localhost:8000
     */
 
-    window.addEventListener("load", startTerminal);
-
-    document.addEventListener("click", () => {
-      if (!loadingStarted) {
-        startTerminal();
-      }
-    });
+    window.addEventListener("load", start);
   </script>
 </body>
 </html>
