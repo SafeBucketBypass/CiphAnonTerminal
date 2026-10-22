@@ -7,9 +7,9 @@
 
   <style>
     :root {
-      --background: #ffffff;
-      --foreground: #000000;
-      --muted: #555555;
+      --white: #ffffff;
+      --black: #000000;
+      --gray: #555555;
     }
 
     * {
@@ -22,8 +22,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--background);
-      color: var(--foreground);
+      background: var(--white);
+      color: var(--black);
       font-family: "Courier New", Courier, monospace;
     }
 
@@ -39,16 +39,16 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #ffffff;
+      background: var(--white);
     }
 
-    /* Random black-and-white glitch blocks */
+    /* Glitch blocks */
     #glitchBlocks {
       position: fixed;
       inset: 0;
       z-index: 50;
-      overflow: hidden;
       pointer-events: none;
+      overflow: hidden;
     }
 
     .glitchBlock {
@@ -67,10 +67,10 @@
     }
 
     .glitchBlock.active {
-      animation: glitchBlockFlash 0.2s steps(2, end);
+      animation: blockGlitch 0.2s steps(2, end);
     }
 
-    @keyframes glitchBlockFlash {
+    @keyframes blockGlitch {
       0% {
         opacity: 0;
         transform: translateX(0);
@@ -80,18 +80,17 @@
         opacity: 1;
       }
 
-      50% {
+      55% {
         opacity: 0.35;
-        transform: translateX(12px);
+        transform: translateX(13px);
       }
 
       100% {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: translateX(-9px);
       }
     }
 
-    /* Full-screen black-and-white flashes */
     #screenFlash {
       position: fixed;
       inset: 0;
@@ -127,7 +126,6 @@
       }
     }
 
-    /* Scan lines */
     #scanlines {
       position: fixed;
       inset: 0;
@@ -138,17 +136,17 @@
         0deg,
         transparent 0px,
         transparent 3px,
-        rgba(0, 0, 0, 0.12) 4px
+        rgba(0, 0, 0, 0.13) 4px
       );
       mix-blend-mode: multiply;
     }
 
     #scanlines.active {
       opacity: 1;
-      animation: scanlineMove 0.2s steps(2, end) infinite;
+      animation: scanMove 0.2s steps(2, end) infinite;
     }
 
-    @keyframes scanlineMove {
+    @keyframes scanMove {
       from {
         background-position: 0 0;
       }
@@ -158,7 +156,11 @@
       }
     }
 
-    /* Intro loading screen */
+    .invert {
+      filter: invert(1);
+    }
+
+    /* Intro */
     #introScreen {
       position: absolute;
       inset: 0;
@@ -178,7 +180,7 @@
     }
 
     #introBox {
-      width: min(1000px, 94vw);
+      width: min(1200px, 96vw);
       text-align: center;
     }
 
@@ -191,29 +193,29 @@
 
     #introStatus {
       min-height: 23px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       color: #333333;
       font-size: clamp(10px, 1.4vw, 15px);
       letter-spacing: 1px;
     }
 
     #introAscii {
-      max-width: 100%;
-      max-height: 58vh;
+      width: 100%;
+      max-height: 62vh;
       margin: 0 auto;
       overflow: hidden;
       white-space: pre;
       text-align: center;
       color: #000000;
-      font-size: clamp(7px, 1.15vw, 17px);
-      line-height: 1.12;
+      font-size: clamp(5px, 0.78vw, 13px);
+      line-height: 1.04;
       font-weight: bold;
     }
 
     #loadingBar {
       width: min(700px, 90vw);
       height: 15px;
-      margin: 28px auto 0;
+      margin: 25px auto 0;
       padding: 2px;
       border: 2px solid #000000;
       background: #ffffff;
@@ -226,7 +228,7 @@
       transition: width 0.08s linear;
     }
 
-    /* Main white terminal */
+    /* Main terminal */
     #terminalScreen {
       position: absolute;
       inset: 0;
@@ -273,33 +275,33 @@
     #terminalContent {
       flex: 1;
       overflow-y: auto;
-      padding: 30px clamp(15px, 7vw, 120px) 125px;
+      padding: 26px clamp(15px, 7vw, 120px) 125px;
       scroll-behavior: smooth;
       background: #ffffff;
     }
 
     #asciiArt {
-      max-width: 100%;
-      margin: 0 auto 35px;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto 32px;
       overflow-x: auto;
       white-space: pre;
       text-align: center;
       color: #000000;
-      font-size: clamp(7px, 1.15vw, 17px);
-      line-height: 1.12;
+      font-size: clamp(5px, 0.78vw, 13px);
+      line-height: 1.04;
       font-weight: bold;
-      text-shadow: 0 0 2px rgba(0, 0, 0, 0.35);
     }
 
     #terminalOutput {
       width: 100%;
       max-width: 1000px;
       margin: 0 auto;
-      white-space: pre-wrap;
-      word-break: break-word;
       color: #000000;
       font-size: clamp(12px, 1.45vw, 16px);
       line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .outputLine {
@@ -311,14 +313,14 @@
     }
 
     .muted {
-      color: var(--muted);
+      color: var(--gray);
     }
 
     .errorLine {
       text-decoration: underline;
     }
 
-    /* Bottom input bar */
+    /* Actual typing area */
     #commandForm {
       position: absolute;
       right: 0;
@@ -327,8 +329,7 @@
       z-index: 20;
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-height: 62px;
+      min-height: 64px;
       padding: 17px 24px;
       border-top: 2px solid #000000;
       background: #ffffff;
@@ -338,9 +339,18 @@
 
     #prompt {
       flex: 0 0 auto;
+      margin-right: 10px;
       color: #000000;
       font-weight: bold;
       white-space: nowrap;
+    }
+
+    #inputWrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
     }
 
     #commandInput {
@@ -351,7 +361,7 @@
       padding: 0;
       background: transparent;
       color: #000000;
-      caret-color: #000000;
+      caret-color: transparent;
       font: inherit;
     }
 
@@ -360,15 +370,23 @@
       opacity: 1;
     }
 
-    #cursor {
-      width: 10px;
-      height: 19px;
-      flex: 0 0 auto;
+    /*
+      This black block is the custom terminal cursor.
+      It moves before the next character as the user types.
+    */
+    #customCursor {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0.62em;
+      height: 1.1em;
+      transform: translateY(-50%);
       background: #000000;
-      animation: blink 0.85s steps(1, end) infinite;
+      pointer-events: none;
+      animation: cursorBlink 0.85s steps(1, end) infinite;
     }
 
-    @keyframes blink {
+    @keyframes cursorBlink {
       0%,
       45% {
         opacity: 1;
@@ -380,7 +398,7 @@
       }
     }
 
-    /* Error message */
+    /* Error box */
     #errorMessage {
       display: none;
       position: fixed;
@@ -401,14 +419,10 @@
       display: block;
     }
 
-    .invert {
-      filter: invert(1);
-    }
-
     @media (max-width: 600px) {
       #introAscii,
       #asciiArt {
-        font-size: 7px;
+        font-size: 5px;
       }
 
       #terminalHeader {
@@ -426,12 +440,8 @@
       }
 
       #prompt {
+        margin-right: 7px;
         font-size: 11px;
-      }
-
-      #cursor {
-        width: 8px;
-        height: 15px;
       }
     }
   </style>
@@ -474,15 +484,17 @@
       <form id="commandForm" autocomplete="off">
         <span id="prompt">guest@ascii:~$</span>
 
-        <input
-          id="commandInput"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="type help to see commands"
-        />
+        <div id="inputWrapper">
+          <input
+            id="commandInput"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="type help to see commands"
+          />
 
-        <span id="cursor"></span>
+          <span id="customCursor"></span>
+        </div>
       </form>
     </section>
 
@@ -491,15 +503,114 @@
 
   <script>
     /*
-      Your TXT file is loaded here.
-      This keeps the ASCII external instead of embedding it in the HTML.
+      This is the exact ASCII supplied in your message.
+      It is embedded directly so the page does not depend on a TXT file.
     */
 
-    const asciiFile = "./1000016546-ascii.txt";
+    const ASCII_ART = String.raw`
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        *@@.                                                        
+                                       *@@@@@@                                                      
+                                       +@@@@@@@@:                                                   
+                                        @@@@@@@@@@                                                  
+                                        :@@@@@@@@@@                                                 
+                                         @@@@@@@@@@@                                                
+                                         @@@@@@@@@:                                                 
+                                         @@@@@@@                                                    
+                                         @@@@@%  #@@@@@@@:     @@%                                  
+                                         @@@@@ :@@@@@@@@@@@@  @@@@@@                                
+                                               @@@@@@@@@@@@@@: @@@@@@                               
+                                               @@@@@@@@@@@@@@@ %@@@@@@.                             
+                                    -@@@@@@@@.  +@@@@@@@@@@@@@@ @@@@@@@                             
+                                   @@@@@@@@@@@@  @@@@@@@@@@@@@@ @@@@@@@@                            
+                               @@  @@@@@@@@@@@@@. @@@@@@@@@@@@@@ @@@@@@@@                           
+                             @@@@@  @@@@@@@@@@@@@- @@@@@@@@@@@@@ @@@@@@@@                           
+                            @@@@@@% @@@@@@@@@@@@@@ .@@@@@@@@@@@@ @@@@@@@@%                          
+                           @@@@@@@@  @@@@@@@@@@@@@@ @@@@@@@@@@@@ @@@@@@@@@                          
+                          @@@@@@@@@. @@@@@@@@@@@@@@ :@@@@@@@@@@@ @@@@@@@@@      @@                  
+                         @@@@@@@@@@@ @@@@@@@@@@@@@@@ @@@@@@@@@@@ @@@@@@@@@     @@@@.                
+                        @@@@@@@@@@@@ @@@@@@@@@@@@@@@ +@@@@@@@@@@ @@@@@@@@@     @@@@@                
+                       -@@@@@@@@@@@@ +@@@@@@@@@@@@@@% @@@@@@@@@@ @@@@@@@@@     @@@@                 
+                       @@@@@@@@@@@@@ .@@@@@@@@@@@@@@@ @@@@@@@@@@ @@@@@@@@@     @@@:                 
+                      @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@ @@@@@@@@@  @@@@@@@@@    @@@#                  
+                      @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@:*@@@@@@@@  @@@@@@@@@    @@@                   
+                     @@@@@@@@@@@@@@@     +@@@@@@@@@@@=-@@@@@@@    @@@@@@@%    @@  %                 
+                     @@@@@@@@@@@@@@        .@@@@@@@@@* @@@@@@      @@@@@@     @  %@@                
+                     @@@@@@@@@@@@@           @@@@@@@@% @@@@@        @@@@@       .@@@.               
+                    @@@@@@@@@@@@%             =@@@@@@*.@@@@.        -@@@        @@@@@               
+                    @@@@@@@@@@@=               %@@@@@+*@@@.          @@@       @@@@@*               
+                    @@@@@@@@@@-                 @@@@@ @@@         .@- @       @@@@                  
+                    @@@@@@@@@*                   @@@@ @@=    *=   @@         @@*                    
+                    @@@@@@@@@                    @@@@ @+    #@@* :@#                                
+                    @@@@@@@@                      @@  :    .@@@@+@@                                 
+                    @@@@@@@                       @#       @@  @@@=                                 
+                    @@@@@@@                                @@   @@                                  
+                    @@@@@@-                                @@+                                      
+                    @@@@@@                                  @@:                                     
+                    @@@@@@                       :-*--       @@=           @@                       
+                    %@@@@@                     @@@@@@@@@      @@%          @@%                      
+                    +@@@@@                    @@@@@@@@@@@      @@          @@@                      
+                    *@@@@@                   @@@@@@@@@@@@                  @@@@                     
+                    @@@@@@                  @@@@@@@@@@@@        @@        -@@@@                     
+                    @@@@@@.                 @@@@@@@@@@@         @@@       @@@@@                     
+                    @@@@@@@                 @@@@@@@@@@         :@@@@      @@@@@@                    
+                    @@@@@@@               + @@@@@@@@@          @@@@@%    @@@@@@@                    
+                    @@@@@@@@             @@@ @@@@@@@           @@@@@@   @@@@@@@@                    
+                    @@@@@@@@-           @@@@@ @@@@@@          @@@@@@@. @@@@@@@@@                    
+                    @@@@@@@@@          @@@@@@@ :@@@          #@@@@@@@@ @@@@@@@@@                    
+                   %@@@@@@@@@@        @@@@@@@@@             :@@@@@@@@@ @@@@@@@@@                    
+                   @@@@@@@@@@@@=    .@@@@@@@@@@@=          .@@@@@@@@@@ @@@@@@@@@                    
+                   @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@-       =@@@@@@@@@@@ @@@@@@@@@                    
+                   @@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@+    @@@@@@@@@@@@@ @@@@@@@@@                    
+                   @@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@+  @@@@@@@@@@@@@@ #@@@@@@@@                    
+                  +@@@@@@@@@@@@@@@@ +@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@ .@@@@@@@@                    
+                  *@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@.+@@@@@@@@@@@@@@  @@@@@@@@                    
+                  *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@: @@@@@@@@@@@@@@ =@@@@@@@                     
+                  *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@@                     
+                  *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@@                     
+                  +@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@                      
+                   @@@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@+ @@@@@@@@@@@@@@ @@@@@@@                      
+                   @@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@:%@@@@@@@@@@@@@- @@@@@@@                      
+                   %@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ +@@@@@@                       
+                    @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@                       
+                    =@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@% @@@@@@@@@@@@@* @@@@@@                        
+                     #@@@@@@@@@@@ -@@@@@@@@@@@@@@@@@@ =@@@@@@@@@@@@@ *@@@@@*                        
+                      .@@@@@@@@@= @@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@                         
+                        @@@@@@@= @@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@ :@@@@@                          
+                          .-=:   @@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@- @@@@@                           
+                                 #@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@ -@@@@                            
+                                   @@@@@@@@@@@@@@@  @@@@@@@@@@@@#   @@                              
+                                     @@@@@@@@@@@:  +@@@@@@@@@@@                                     
+                                                    :@@@@@@@                                        
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+`;
 
     const settings = {
       introDuration: 7000,
-      typingSpeed: 8,
+      typingSpeed: 5,
       glitchChance: 0.82,
       blockCount: 20,
       glitchInterval: 125
@@ -517,6 +628,8 @@
 
     const commandForm = document.getElementById("commandForm");
     const commandInput = document.getElementById("commandInput");
+    const inputWrapper = document.getElementById("inputWrapper");
+    const customCursor = document.getElementById("customCursor");
 
     const glitchBlocks = document.getElementById("glitchBlocks");
     const screenFlash = document.getElementById("screenFlash");
@@ -525,15 +638,14 @@
 
     const introMessages = [
       "CONNECTING TO TERMINAL...",
-      "CHECKING ASCII FILE...",
-      "READING TEXT DATA...",
-      "RENDERING ASCII...",
+      "CHECKING DISPLAY BUFFER...",
+      "READING ASCII DATA...",
+      "RENDERING CHARACTER MAP...",
       "APPLYING DISPLAY EFFECTS...",
       "STARTING COMMAND INPUT...",
       "SYSTEM READY."
     ];
 
-    let asciiText = "";
     let commandHistory = [];
     let historyIndex = -1;
     let glitchTimer = null;
@@ -550,36 +662,25 @@
       });
     }
 
+    function addOutput(text = "", className = "") {
+      const line = document.createElement("div");
+      line.className = `outputLine ${className}`;
+      line.textContent = text;
+      terminalOutput.appendChild(line);
+      scrollTerminal();
+    }
+
+    function scrollTerminal() {
+      terminalContent.scrollTop = terminalContent.scrollHeight;
+    }
+
     function showError(message) {
       errorMessage.textContent = message;
       errorMessage.classList.add("visible");
 
       setTimeout(() => {
         errorMessage.classList.remove("visible");
-      }, 7000);
-    }
-
-    /*
-      Loads the TXT file from the same folder as index.html.
-    */
-    async function loadAsciiFile() {
-      const response = await fetch(asciiFile, {
-        cache: "no-store"
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Could not load ${asciiFile}. HTTP status: ${response.status}`
-        );
-      }
-
-      const text = await response.text();
-
-      if (!text.trim()) {
-        throw new Error("The ASCII TXT file is empty.");
-      }
-
-      return text;
+      }, 6000);
     }
 
     function createGlitchBlocks() {
@@ -602,12 +703,7 @@
       const block = blocks[randomNumber(0, blocks.length - 1)];
 
       block.classList.remove("black", "white", "active");
-
-      if (Math.random() > 0.5) {
-        block.classList.add("black");
-      } else {
-        block.classList.add("white");
-      }
+      block.classList.add(Math.random() > 0.5 ? "black" : "white");
 
       block.style.left = `${randomNumber(-5, 95)}%`;
       block.style.top = `${randomNumber(-5, 95)}%`;
@@ -668,7 +764,7 @@
 
         introAscii.textContent += text[i];
 
-        if (i % 15 === 0) {
+        if (i % 13 === 0) {
           flashRandomBlock();
         }
 
@@ -691,10 +787,7 @@
 
       startGlitches();
 
-      const typingPromise = typeIntroAscii(
-        asciiText || "ASCII FILE COULD NOT BE LOADED",
-        runId
-      );
+      const typingPromise = typeIntroAscii(ASCII_ART, runId);
 
       const progressTimer = setInterval(() => {
         if (runId !== introRunId) {
@@ -747,27 +840,15 @@
       introScreen.classList.add("hidden");
       terminalScreen.classList.add("visible");
 
-      asciiArt.textContent = asciiText;
+      asciiArt.textContent = ASCII_ART;
 
       setTimeout(() => {
         addOutput("System ready.");
-        addOutput(`Loaded: ${asciiFile}`, "muted");
         addOutput('Type "help" to see available commands.', "muted");
         addOutput("");
         commandInput.focus();
+        updateCursorPosition();
       }, 700);
-    }
-
-    function addOutput(text = "", className = "") {
-      const line = document.createElement("div");
-      line.className = `outputLine ${className}`;
-      line.textContent = text;
-      terminalOutput.appendChild(line);
-      scrollTerminal();
-    }
-
-    function scrollTerminal() {
-      terminalContent.scrollTop = terminalContent.scrollHeight;
     }
 
     function executeCommand(rawCommand) {
@@ -809,23 +890,22 @@
 
         case "ascii":
         case "show":
-          asciiArt.textContent = asciiText;
+          asciiArt.textContent = ASCII_ART;
           addOutput("ASCII display refreshed.");
           break;
 
         case "about":
           addOutput("ASCII COMMAND TERMINAL");
           addOutput("White background / black text interface.");
-          addOutput("The TXT file is loaded from the local project folder.");
-          addOutput("Visual effects are fictional and local only.");
+          addOutput("The ASCII is embedded directly in this HTML file.");
           addOutput("");
           break;
 
         case "status":
-          addOutput("ASCII FILE   LOADED");
-          addOutput("DISPLAY      ONLINE");
-          addOutput("INPUT        READY");
-          addOutput("NETWORK      NOT USED");
+          addOutput("DISPLAY   ONLINE");
+          addOutput("ASCII     READY");
+          addOutput("INPUT     READY");
+          addOutput("NETWORK   NOT USED");
           addOutput("");
           break;
 
@@ -873,6 +953,32 @@
       runIntro();
     }
 
+    /*
+      Move the black block cursor to the actual end of the typed text.
+    */
+    function updateCursorPosition() {
+      const typedText = commandInput.value;
+
+      const measurement = document.createElement("span");
+      const inputStyles = window.getComputedStyle(commandInput);
+
+      measurement.style.position = "absolute";
+      measurement.style.visibility = "hidden";
+      measurement.style.whiteSpace = "pre";
+      measurement.style.font = inputStyles.font;
+      measurement.style.fontFamily = inputStyles.fontFamily;
+      measurement.style.fontSize = inputStyles.fontSize;
+      measurement.style.fontWeight = inputStyles.fontWeight;
+      measurement.textContent = typedText;
+
+      inputWrapper.appendChild(measurement);
+
+      const textWidth = measurement.getBoundingClientRect().width;
+      measurement.remove();
+
+      customCursor.style.left = `${textWidth}px`;
+    }
+
     commandForm.addEventListener("submit", (event) => {
       event.preventDefault();
 
@@ -886,8 +992,11 @@
       executeCommand(command);
 
       commandInput.value = "";
+      updateCursorPosition();
       commandInput.focus();
     });
+
+    commandInput.addEventListener("input", updateCursorPosition);
 
     commandInput.addEventListener("keydown", (event) => {
       if (event.key === "ArrowUp") {
@@ -899,6 +1008,7 @@
 
         historyIndex = Math.max(0, historyIndex - 1);
         commandInput.value = commandHistory[historyIndex];
+        updateCursorPosition();
       }
 
       if (event.key === "ArrowDown") {
@@ -917,6 +1027,8 @@
           historyIndex === commandHistory.length
             ? ""
             : commandHistory[historyIndex];
+
+        updateCursorPosition();
       }
 
       if (event.key === "Tab") {
@@ -935,61 +1047,36 @@
           "reboot"
         ];
 
-        const typedText = commandInput.value.toLowerCase();
+        const currentText = commandInput.value.toLowerCase();
 
         const match = commands.find((command) =>
-          command.startsWith(typedText)
+          command.startsWith(currentText)
         );
 
         if (match) {
           commandInput.value = match;
+          updateCursorPosition();
         }
       }
     });
 
+    window.addEventListener("resize", updateCursorPosition);
+
     document.addEventListener("click", () => {
       if (terminalScreen.classList.contains("visible")) {
         commandInput.focus();
+        updateCursorPosition();
       }
     });
 
-    async function start() {
-      try {
-        introStatus.textContent = "LOADING ASCII FILE...";
-        asciiText = await loadAsciiFile();
-        runIntro();
-      } catch (error) {
-        console.error(error);
-
-        asciiText =
-          "ASCII FILE ERROR\n\n" +
-          "Could not load 1000016546-ascii.txt";
-
-        showError(
-          "ASCII FILE ERROR\n\n" +
-          "Make sure this file is beside index.html:\n\n" +
-          "1000016546-ascii.txt"
-        );
-
-        runIntro();
+    function start() {
+      if (!ASCII_ART.trim()) {
+        showError("ASCII ART IS EMPTY");
+        return;
       }
+
+      runIntro();
     }
-
-    /*
-      Important:
-      If you open index.html by double-clicking it, some browsers block
-      loading local TXT files with fetch().
-
-      Run the folder with a local server:
-
-      python -m http.server
-
-      Then open:
-
-      http://localhost:8000
-
-      GitHub Pages should load it normally.
-    */
 
     window.addEventListener("load", start);
   </script>
