@@ -55,6 +55,25 @@
       white-space: pre;
     }
 
+    #terminalOutput {
+      position: absolute;
+      right: 24px;
+      bottom: 82px;
+      left: 24px;
+      max-height: 130px;
+      overflow-y: auto;
+      color: #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 15px;
+      font-weight: normal;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .outputLine {
+      min-height: 1.45em;
+    }
+
     #commandForm {
       position: absolute;
       right: 0;
@@ -129,6 +148,13 @@
     @media (max-width: 600px) {
       #asciiArt {
         font-size: 5px;
+      }
+
+      #terminalOutput {
+        right: 12px;
+        bottom: 68px;
+        left: 12px;
+        font-size: 12px;
       }
 
       #commandForm {
@@ -253,6 +279,8 @@
                                                                                                     
       </pre>
 
+      <div id="terminalOutput"></div>
+
       <form id="commandForm" autocomplete="off">
         <span id="prompt">guest@ascii:~$ </span>
 
@@ -262,6 +290,7 @@
             type="text"
             autocomplete="off"
             spellcheck="false"
+            placeholder="type help"
           />
 
           <span id="cursor"></span>
@@ -275,9 +304,18 @@
     const commandInput = document.getElementById("commandInput");
     const inputWrapper = document.getElementById("inputWrapper");
     const cursor = document.getElementById("cursor");
+    const terminalOutput = document.getElementById("terminalOutput");
 
     let commandHistory = [];
     let historyIndex = -1;
+
+    function addOutput(text) {
+      const line = document.createElement("div");
+      line.className = "outputLine";
+      line.textContent = text;
+      terminalOutput.appendChild(line);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
 
     function updateCursor() {
       const measurement = document.createElement("span");
@@ -294,10 +332,86 @@
 
       inputWrapper.appendChild(measurement);
 
-      cursor.style.left = `${measurement.getBoundingClientRect().width}px`;
+      cursor.style.left =
+        `${measurement.getBoundingClientRect().width}px`;
 
       measurement.remove();
     }
+
+    function runCommand(rawCommand) {
+      const commandLine = rawCommand.trim();
+
+      if (!commandLine) {
+        return;
+      }
+
+      addOutput(`guest@ascii:~$ ${commandLine}`);
+
+      const parts = commandLine.split(/\s+/);
+      const command = parts[0].toLowerCase();
+      const argument = parts.slice(1).join(" ");
+
+      switch (command) {
+        case "help":
+        case "?":
+          addOutput("help     show commands");
+          addOutput("clear    clear terminal output");
+          addOutput("ascii    confirm ASCII display");
+          addOutput("status   show terminal status");
+          addOutput("date     show date and time");
+          addOutput("echo     print text");
+          addOutput("whoami   show current user");
+          break;
+
+        case "clear":
+        case "cls":
+          terminalOutput.innerHTML = "";
+          break;
+
+        case "ascii":
+          addOutput("ASCII DISPLAY ACTIVE");
+          break;
+
+        case "status":
+          addOutput("DISPLAY: ONLINE");
+          addOutput("INPUT: READY");
+          addOutput("ASCII: READY");
+          break;
+
+        case "date":
+        case "time":
+          addOutput(new Date().toString());
+          break;
+
+        case "echo":
+          addOutput(argument);
+          break;
+
+        case "whoami":
+          addOutput("guest");
+          break;
+
+        default:
+          addOutput(`Command not found: ${command}`);
+          addOutput('Type "help" to see available commands.');
+      }
+    }
+
+    commandForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const command = commandInput.value;
+
+      if (command.trim()) {
+        commandHistory.push(command);
+        runCommand(command);
+      }
+
+      historyIndex = commandHistory.length;
+      commandInput.value = "";
+      updateCursor();
+      commandInput.focus();
+    });
 
     commandInput.addEventListener("input", updateCursor);
 
@@ -305,7 +419,7 @@
       if (event.key === "ArrowUp") {
         event.preventDefault();
 
-        if (commandHistory.length === 0) {
+        if (!commandHistory.length) {
           return;
         }
 
@@ -317,7 +431,7 @@
       if (event.key === "ArrowDown") {
         event.preventDefault();
 
-        if (commandHistory.length === 0) {
+        if (!commandHistory.length) {
           return;
         }
 
@@ -333,20 +447,31 @@
 
         updateCursor();
       }
-    });
 
-    commandForm.addEventListener("submit", (event) => {
-      event.preventDefault();
+      if (event.key === "Tab") {
+        event.preventDefault();
 
-      const command = commandInput.value.trim();
+        const commands = [
+          "help",
+          "clear",
+          "ascii",
+          "status",
+          "date",
+          "echo ",
+          "whoami"
+        ];
 
-      if (command) {
-        commandHistory.push(command);
+        const typedText = commandInput.value.toLowerCase();
+
+        const match = commands.find((command) =>
+          command.startsWith(typedText)
+        );
+
+        if (match) {
+          commandInput.value = match;
+          updateCursor();
+        }
       }
-
-      historyIndex = commandHistory.length;
-      commandInput.value = "";
-      updateCursor();
     });
 
     document.addEventListener("click", () => {
@@ -355,7 +480,10 @@
     });
 
     window.addEventListener("resize", updateCursor);
+
     window.addEventListener("load", () => {
+      addOutput("Terminal ready.");
+      addOutput('Type "help" to see available commands.');
       commandInput.focus();
       updateCursor();
     });
