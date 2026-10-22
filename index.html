@@ -7,9 +7,9 @@
 
   <style>
     :root {
-      --bg: #ffffff;
-      --fg: #000000;
-      --gray: #777777;
+      --background: #ffffff;
+      --foreground: #000000;
+      --muted: #777777;
     }
 
     * {
@@ -22,8 +22,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--bg);
-      color: var(--fg);
+      background: var(--background);
+      color: var(--foreground);
       font-family: "Courier New", Courier, monospace;
     }
 
@@ -39,14 +39,14 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: var(--bg);
+      background: var(--background);
     }
 
-    /* Random glitch blocks */
+    /* Glitch layers */
     #glitchBlocks {
       position: fixed;
       inset: 0;
-      z-index: 30;
+      z-index: 40;
       overflow: hidden;
       pointer-events: none;
     }
@@ -84,18 +84,17 @@
       }
     }
 
-    /* Scan lines and glitch overlay */
     #scanlines {
       position: fixed;
       inset: 0;
-      z-index: 25;
+      z-index: 35;
       pointer-events: none;
       opacity: 0;
       background: repeating-linear-gradient(
         0deg,
         transparent 0px,
         transparent 3px,
-        rgba(0, 0, 0, 0.13) 4px
+        rgba(0, 0, 0, 0.14) 4px
       );
       mix-blend-mode: multiply;
     }
@@ -118,14 +117,13 @@
     #screenGlitch {
       position: fixed;
       inset: 0;
-      z-index: 20;
+      z-index: 30;
       pointer-events: none;
       opacity: 0;
       background: #000;
     }
 
     #screenGlitch.active {
-      opacity: 1;
       animation: screenFlash 0.16s steps(2, end);
     }
 
@@ -296,7 +294,7 @@
     }
 
     .muted {
-      color: var(--gray);
+      color: var(--muted);
     }
 
     .error {
@@ -367,7 +365,7 @@
       position: fixed;
       top: 50%;
       left: 50%;
-      z-index: 50;
+      z-index: 60;
       width: min(500px, 86vw);
       padding: 20px;
       transform: translate(-50%, -50%);
@@ -471,19 +469,20 @@
 
   <script>
     /*
-      Put your TXT file in the same folder as this HTML file.
-      Your current file is already included below.
+      These files must be in the same GitHub repository folder
+      as index.html.
     */
 
     const asciiFiles = [
-      "1000016546-ascii.txt"
+      "./1000016546-ascii.txt",
+      "./1000016679-ascii.txt"
     ];
 
     const settings = {
       introDuration: 7000,
       typingSpeed: 10,
       glitchChance: 0.82,
-      blockCount: 16,
+      blockCount: 18,
       glitchInterval: 130
     };
 
@@ -520,6 +519,7 @@
     let historyIndex = -1;
     let introFinished = false;
     let glitchTimer = null;
+    let introRunId = 0;
 
     function randomNumber(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -537,29 +537,47 @@
 
       setTimeout(() => {
         errorMessage.classList.remove("visible");
-      }, 5000);
+      }, 6000);
+    }
+
+    async function loadAsciiFile(filename) {
+      const response = await fetch(filename, {
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `${filename} returned HTTP ${response.status}`
+        );
+      }
+
+      return await response.text();
     }
 
     async function loadAsciiFiles() {
-      const files = [];
+      const results = [];
+      const failures = [];
 
       for (const filename of asciiFiles) {
         try {
-          const response = await fetch(filename, {
-            cache: "no-store"
-          });
+          const text = await loadAsciiFile(filename);
 
-          if (!response.ok) {
-            throw new Error(`Could not load ${filename}`);
+          if (text.trim().length > 0) {
+            results.push(text);
+          } else {
+            failures.push(`${filename} is empty`);
           }
-
-          files.push(await response.text());
         } catch (error) {
-          console.warn(error);
+          console.error(error);
+          failures.push(filename);
         }
       }
 
-      return files;
+      if (failures.length) {
+        console.warn("ASCII files that did not load:", failures);
+      }
+
+      return results;
     }
 
     function createGlitchBlocks() {
@@ -584,8 +602,8 @@
 
       block.style.left = `${randomNumber(-5, 95)}%`;
       block.style.top = `${randomNumber(-5, 95)}%`;
-      block.style.width = `${randomNumber(2, 30)}%`;
-      block.style.height = `${randomNumber(1, 16)}%`;
+      block.style.width = `${randomNumber(2, 32)}%`;
+      block.style.height = `${randomNumber(1, 17)}%`;
 
       block.classList.remove("active");
       void block.offsetWidth;
@@ -593,7 +611,7 @@
 
       setTimeout(() => {
         block.classList.remove("active");
-      }, randomNumber(100, 260));
+      }, randomNumber(100, 280));
     }
 
     function flashScreen() {
@@ -629,12 +647,14 @@
       glitchTimer = null;
       scanlines.classList.remove("active");
       document.body.classList.remove("invert");
+      screenGlitch.classList.remove("active");
     }
 
     function displayAscii(index = 0) {
       if (!loadedAscii.length) {
         asciiArt.textContent =
-          "NO ASCII FILE FOUND\n\nPlace 1000016546-ascii.txt beside index.html.";
+          "NO ASCII FILE FOUND\n\n" +
+          "Check the filenames in the JavaScript.";
         return;
       }
 
@@ -644,10 +664,14 @@
       asciiArt.textContent = loadedAscii[currentAsciiIndex];
     }
 
-    async function typeAscii(text) {
+    async function typeAscii(text, runId) {
       introAscii.textContent = "";
 
       for (let i = 0; i < text.length; i++) {
+        if (runId !== introRunId) {
+          return;
+        }
+
         introAscii.textContent += text[i];
 
         if (i % 18 === 0) {
@@ -663,14 +687,27 @@
     }
 
     async function runIntro() {
+      const runId = ++introRunId;
+      const introStart = Date.now();
+      const asciiText =
+        loadedAscii[0] ||
+        "NO ASCII DATA FOUND\n\nCHECK FILE NAMES";
+
+      introFinished = false;
+      introAscii.textContent = "";
+      introLoadingFill.style.width = "0%";
+      introStatus.textContent = "CONNECTING...";
+
       startGlitchEffects();
 
-      const introStart = Date.now();
-      const asciiText = loadedAscii[0] || "NO ASCII DATA FOUND";
-
-      const typingPromise = typeAscii(asciiText);
+      const typingPromise = typeAscii(asciiText, runId);
 
       const progressTimer = setInterval(() => {
+        if (runId !== introRunId) {
+          clearInterval(progressTimer);
+          return;
+        }
+
         const elapsed = Date.now() - introStart;
         const progress = Math.min(
           100,
@@ -700,7 +737,9 @@
         await wait(remainingTime);
       }
 
-      finishIntro();
+      if (runId === introRunId) {
+        finishIntro();
+      }
     }
 
     function finishIntro() {
@@ -793,7 +832,9 @@
             addOutput("Only one ASCII file is loaded.", "muted");
           } else {
             displayAscii(currentAsciiIndex + 1);
-            addOutput(`Displayed ASCII file ${currentAsciiIndex + 1}.`);
+            addOutput(
+              `Displayed ASCII file ${currentAsciiIndex + 1}.`
+            );
           }
           break;
 
@@ -812,7 +853,7 @@
         case "about":
           addOutput("ASCII COMMAND TERMINAL");
           addOutput("Interactive monochrome terminal interface.");
-          addOutput("The intro includes typed ASCII and random glitches.");
+          addOutput("Typed ASCII intro with random glitch effects.");
           addOutput("");
           break;
 
@@ -849,11 +890,11 @@
     }
 
     async function reboot() {
+      introRunId++;
+
+      stopGlitchEffects();
       terminalScreen.classList.remove("visible");
       introScreen.classList.remove("hidden");
-      introAscii.textContent = "";
-      introLoadingFill.style.width = "0%";
-      introFinished = false;
 
       await wait(500);
       runIntro();
@@ -941,20 +982,39 @@
     });
 
     async function start() {
-      loadedAscii = await loadAsciiFiles();
+      try {
+        introStatus.textContent = "LOADING ASCII FILES...";
+        loadedAscii = await loadAsciiFiles();
 
-      if (!loadedAscii.length) {
-        showError(
-          "ASCII FILE ERROR\n\nMake sure 1000016546-ascii.txt is in the same folder as index.html."
-        );
+        if (!loadedAscii.length) {
+          introStatus.textContent = "ASCII FILES NOT FOUND";
+
+          showError(
+            "ASCII FILE ERROR\n\n" +
+            "Make sure these files are beside index.html:\n\n" +
+            "1000016546-ascii.txt\n" +
+            "1000016679-ascii.txt"
+          );
+        }
+
+        runIntro();
+      } catch (error) {
+        console.error("Terminal startup error:", error);
+
+        introStatus.textContent = "STARTUP ERROR";
+        introAscii.textContent =
+          "TERMINAL STARTUP FAILED\n\n" +
+          "Open the browser console with F12.";
+
+        runIntro();
       }
-
-      runIntro();
     }
 
     /*
-      If the TXT file does not load when opening index.html directly,
-      run this inside the project folder:
+      GitHub Pages should load the TXT files automatically.
+
+      If testing with a local file and the ASCII does not load,
+      run this in the project folder:
 
       python -m http.server
 
