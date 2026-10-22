@@ -6,13 +6,6 @@
   <title>ASCII Terminal</title>
 
   <style>
-    :root {
-      --white: #ffffff;
-      --black: #000000;
-      --gray: #707070;
-      --light-gray: #d6d6d6;
-    }
-
     * {
       box-sizing: border-box;
     }
@@ -23,320 +16,102 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: var(--white);
-      color: var(--black);
+      background: #ffffff;
+      color: #000000;
       font-family: "Courier New", Courier, monospace;
-    }
-
-    body {
-      position: relative;
+      font-weight: normal;
     }
 
     #app {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+    }
+
+    #terminal {
       position: relative;
       width: 100%;
       height: 100%;
-      background: var(--white);
       overflow: hidden;
+      background: #ffffff;
     }
 
-    /* Static/noise layer */
-    #staticLayer {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      pointer-events: none;
-      opacity: 0.2;
-      background-image:
-        radial-gradient(#000 0.7px, transparent 0.8px),
-        radial-gradient(#777 0.7px, transparent 0.8px);
-      background-position:
-        0 0,
-        4px 4px;
-      background-size:
-        7px 7px,
-        9px 9px;
-      mix-blend-mode: multiply;
-      animation: staticMove 0.12s steps(2, end) infinite;
-    }
-
-    @keyframes staticMove {
-      0% {
-        transform: translate(0, 0);
-        opacity: 0.13;
-      }
-
-      25% {
-        transform: translate(-3px, 2px);
-        opacity: 0.22;
-      }
-
-      50% {
-        transform: translate(2px, -2px);
-        opacity: 0.16;
-      }
-
-      75% {
-        transform: translate(3px, 1px);
-        opacity: 0.24;
-      }
-
-      100% {
-        transform: translate(0, 0);
-        opacity: 0.14;
-      }
-    }
-
-    /* Scanlines */
-    #scanlines {
-      position: fixed;
-      inset: 0;
-      z-index: 51;
-      pointer-events: none;
-      opacity: 0.2;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent 0px,
-        transparent 3px,
-        rgba(0, 0, 0, 0.18) 4px
-      );
-      mix-blend-mode: multiply;
-      animation: scanMove 0.25s steps(2, end) infinite;
-    }
-
-    @keyframes scanMove {
-      from {
-        background-position: 0 0;
-      }
-
-      to {
-        background-position: 0 12px;
-      }
-    }
-
-    /* Random glitch blocks */
-    #glitchBlocks {
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .glitchBlock {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .glitchBlock.black {
-      background: #000;
-    }
-
-    .glitchBlock.gray {
-      background: #888;
-    }
-
-    .glitchBlock.active {
-      animation: glitchBlock 0.18s steps(2, end);
-    }
-
-    @keyframes glitchBlock {
-      0% {
-        opacity: 0;
-        transform: translateX(0);
-      }
-
-      25% {
-        opacity: 0.8;
-      }
-
-      60% {
-        opacity: 0.25;
-        transform: translateX(10px);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translateX(-8px);
-      }
-    }
-
-    /* Header */
-    #header {
-      position: relative;
-      z-index: 5;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 56px;
-      padding: 0 22px;
-      border-bottom: 2px solid var(--black);
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--gray);
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-shadow: 0 0 1px #000;
-    }
-
-    #headerLeft,
-    #headerRight {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    #headerDot {
-      width: 9px;
-      height: 9px;
-      background: var(--black);
-      animation: blink 0.85s steps(1, end) infinite;
-    }
-
-    /* Main terminal */
-    #terminal {
-      position: absolute;
-      inset: 56px 0 0;
-      z-index: 4;
-      display: flex;
-      flex-direction: column;
-      background: rgba(255, 255, 255, 0.86);
-    }
-
-    #terminalContent {
-      flex: 1;
-      overflow-y: auto;
-      padding: 30px clamp(14px, 7vw, 120px) 125px;
-      scroll-behavior: smooth;
-    }
-
-    /*
-      The ASCII is permanently visible here.
-      It is not fetched or loaded from a TXT file.
-    */
     #asciiArt {
-      width: 100%;
-      max-width: 1450px;
-      margin: 0 auto 30px;
-      overflow-x: auto;
-      white-space: pre;
-      text-align: center;
+      position: absolute;
+      inset: 0 0 70px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+      overflow: auto;
+      background: #ffffff;
       color: #000000;
+      font-family: "Courier New", Courier, monospace;
       font-size: clamp(5px, 0.78vw, 13px);
+      font-weight: normal;
       line-height: 1.04;
-      font-weight: bold;
-      text-shadow:
-        0 0 1px #000,
-        0 0 3px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      white-space: pre;
     }
 
-    #terminalOutput {
-      width: 100%;
-      max-width: 1050px;
-      margin: 0 auto;
-      color: var(--gray);
-      font-size: clamp(12px, 1.4vw, 16px);
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-      text-shadow: 0 0 1px #555;
-    }
-
-    .outputLine {
-      min-height: 1.6em;
-    }
-
-    .commandLine {
-      color: #000;
-      font-weight: bold;
-    }
-
-    .systemLine {
-      color: #444;
-    }
-
-    .errorLine {
-      color: #000;
-      text-decoration: underline;
-    }
-
-    /* Terminal input */
     #commandForm {
       position: absolute;
       right: 0;
       bottom: 0;
       left: 0;
-      z-index: 10;
       display: flex;
       align-items: center;
-      min-height: 64px;
-      padding: 17px 24px;
-      border-top: 2px solid var(--black);
-      background: rgba(255, 255, 255, 0.93);
-      color: var(--gray);
-      font-size: clamp(12px, 1.5vw, 17px);
+      height: 70px;
+      padding: 0 24px;
+      border-top: 1px solid #000000;
+      background: #ffffff;
+      color: #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      font-weight: normal;
     }
 
     #prompt {
-      flex: 0 0 auto;
-      margin-right: 10px;
-      color: #000;
-      font-weight: bold;
-      white-space: nowrap;
+      white-space: pre;
+      color: #000000;
+      font-weight: normal;
     }
 
     #inputWrapper {
       position: relative;
-      display: flex;
-      align-items: center;
       width: 100%;
       min-width: 0;
     }
 
     #commandInput {
       width: 100%;
-      min-width: 0;
       border: 0;
       outline: 0;
       padding: 0;
       background: transparent;
-      color: var(--gray);
+      color: #000000;
       caret-color: transparent;
-      font: inherit;
-      text-shadow: 0 0 1px #555;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      font-weight: normal;
     }
 
     #commandInput::placeholder {
-      color: #888;
+      color: #000000;
       opacity: 1;
     }
 
-    /*
-      The black block moves to the exact position where the
-      next typed character will appear.
-    */
-    #customCursor {
+    #cursor {
       position: absolute;
       top: 50%;
       left: 0;
-      width: 0.62em;
-      height: 1.1em;
+      width: 10px;
+      height: 19px;
       transform: translateY(-50%);
-      background: #000;
+      background: #000000;
       pointer-events: none;
-      animation: cursorBlink 0.85s steps(1, end) infinite;
-    }
-
-    @keyframes cursorBlink {
-      0%,
-      45% {
-        opacity: 1;
-      }
-
-      46%,
-      100% {
-        opacity: 0;
-      }
+      animation: blink 0.8s steps(1, end) infinite;
     }
 
     @keyframes blink {
@@ -352,32 +127,23 @@
     }
 
     @media (max-width: 600px) {
-      #header {
-        min-height: 48px;
-        padding: 0 12px;
-        font-size: 9px;
-      }
-
-      #terminal {
-        inset: 48px 0 0;
-      }
-
-      #terminalContent {
-        padding: 20px 12px 115px;
-      }
-
       #asciiArt {
         font-size: 5px;
       }
 
       #commandForm {
-        min-height: 56px;
-        padding: 14px 12px;
+        height: 58px;
+        padding: 0 12px;
+        font-size: 13px;
       }
 
-      #prompt {
-        margin-right: 7px;
-        font-size: 11px;
+      #commandInput {
+        font-size: 13px;
+      }
+
+      #cursor {
+        width: 8px;
+        height: 15px;
       }
     }
   </style>
@@ -385,25 +151,8 @@
 
 <body>
   <main id="app">
-    <div id="staticLayer"></div>
-    <div id="scanlines"></div>
-    <div id="glitchBlocks"></div>
-
-    <header id="header">
-      <div id="headerLeft">
-        <span id="headerDot"></span>
-        <span>ASCII TERMINAL // LOCAL DISPLAY</span>
-      </div>
-
-      <div id="headerRight">
-        <span>STATIC: ACTIVE</span>
-        <span>ONLINE</span>
-      </div>
-    </header>
-
     <section id="terminal">
-      <div id="terminalContent">
-        <pre id="asciiArt">
+      <pre id="asciiArt">
                                                                                                     
                                                                                                     
                                                                                                     
@@ -502,18 +251,10 @@
                                                                                                     
                                                                                                     
                                                                                                     
-        </pre>
-
-        <div id="terminalOutput">
-          <div class="outputLine systemLine">SYSTEM READY.</div>
-          <div class="outputLine systemLine">STATIC DISPLAY ACTIVE.</div>
-          <div class="outputLine">Type "help" to view commands.</div>
-          <div class="outputLine"></div>
-        </div>
-      </div>
+      </pre>
 
       <form id="commandForm" autocomplete="off">
-        <span id="prompt">guest@ascii:~$</span>
+        <span id="prompt">guest@ascii:~$ </span>
 
         <div id="inputWrapper">
           <input
@@ -521,209 +262,62 @@
             type="text"
             autocomplete="off"
             spellcheck="false"
-            placeholder="type a command"
           />
 
-          <span id="customCursor"></span>
+          <span id="cursor"></span>
         </div>
       </form>
     </section>
   </main>
 
   <script>
-    const commandInput = document.getElementById("commandInput");
     const commandForm = document.getElementById("commandForm");
+    const commandInput = document.getElementById("commandInput");
     const inputWrapper = document.getElementById("inputWrapper");
-    const customCursor = document.getElementById("customCursor");
-
-    const terminalContent = document.getElementById("terminalContent");
-    const terminalOutput = document.getElementById("terminalOutput");
-
-    const glitchBlocks = document.getElementById("glitchBlocks");
-
-    const settings = {
-      glitchChance: 0.45,
-      blockCount: 14,
-      glitchInterval: 900
-    };
+    const cursor = document.getElementById("cursor");
 
     let commandHistory = [];
     let historyIndex = -1;
 
-    function randomNumber(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function addOutput(text = "", className = "") {
-      const line = document.createElement("div");
-      line.className = `outputLine ${className}`;
-      line.textContent = text;
-      terminalOutput.appendChild(line);
-      scrollToBottom();
-    }
-
-    function scrollToBottom() {
-      terminalContent.scrollTop = terminalContent.scrollHeight;
-    }
-
-    function createStaticGlitch() {
-      if (Math.random() > settings.glitchChance) {
-        return;
-      }
-
-      const block = document.createElement("div");
-      block.className =
-        Math.random() > 0.5
-          ? "glitchBlock black active"
-          : "glitchBlock gray active";
-
-      block.style.left = `${randomNumber(0, 98)}%`;
-      block.style.top = `${randomNumber(0, 98)}%`;
-      block.style.width = `${randomNumber(1, 12)}%`;
-      block.style.height = `${randomNumber(1, 5)}%`;
-
-      glitchBlocks.appendChild(block);
-
-      setTimeout(() => {
-        block.remove();
-      }, 220);
-    }
-
-    function updateCursorPosition() {
-      const typedText = commandInput.value;
-
+    function updateCursor() {
       const measurement = document.createElement("span");
-      const inputStyles = window.getComputedStyle(commandInput);
+      const styles = window.getComputedStyle(commandInput);
 
       measurement.style.position = "absolute";
       measurement.style.visibility = "hidden";
       measurement.style.whiteSpace = "pre";
-      measurement.style.fontFamily = inputStyles.fontFamily;
-      measurement.style.fontSize = inputStyles.fontSize;
-      measurement.style.fontWeight = inputStyles.fontWeight;
-      measurement.style.letterSpacing = inputStyles.letterSpacing;
-      measurement.textContent = typedText;
+      measurement.style.fontFamily = styles.fontFamily;
+      measurement.style.fontSize = styles.fontSize;
+      measurement.style.fontWeight = styles.fontWeight;
+      measurement.style.letterSpacing = styles.letterSpacing;
+      measurement.textContent = commandInput.value;
 
       inputWrapper.appendChild(measurement);
 
-      const textWidth = measurement.getBoundingClientRect().width;
+      cursor.style.left = `${measurement.getBoundingClientRect().width}px`;
+
       measurement.remove();
-
-      customCursor.style.left = `${textWidth}px`;
     }
 
-    function executeCommand(rawCommand) {
-      const commandLine = rawCommand.trim();
-
-      if (!commandLine) {
-        addOutput("");
-        return;
-      }
-
-      addOutput(`guest@ascii:~$ ${commandLine}`, "commandLine");
-
-      const parts = commandLine.split(/\s+/);
-      const command = parts[0].toLowerCase();
-      const argument = parts.slice(1).join(" ");
-
-      switch (command) {
-        case "help":
-        case "?":
-          addOutput("AVAILABLE COMMANDS");
-          addOutput("------------------");
-          addOutput("help       Show commands");
-          addOutput("clear      Clear terminal output");
-          addOutput("ascii      Confirm ASCII display");
-          addOutput("status     Show display status");
-          addOutput("date       Show current date and time");
-          addOutput("echo TEXT  Print text");
-          addOutput("whoami     Show current user");
-          addOutput("static     Add static interference");
-          addOutput("");
-          break;
-
-        case "clear":
-        case "cls":
-          terminalOutput.innerHTML = "";
-          break;
-
-        case "ascii":
-          addOutput("ASCII DISPLAY: ACTIVE");
-          break;
-
-        case "status":
-          addOutput("DISPLAY  ONLINE");
-          addOutput("STATIC   ACTIVE");
-          addOutput("INPUT    READY");
-          addOutput("NETWORK  NOT USED");
-          break;
-
-        case "date":
-        case "time":
-          addOutput(new Date().toString());
-          break;
-
-        case "echo":
-          addOutput(argument);
-          break;
-
-        case "whoami":
-          addOutput("guest");
-          break;
-
-        case "static":
-        case "glitch":
-          for (let i = 0; i < 5; i++) {
-            setTimeout(createStaticGlitch, i * 80);
-          }
-
-          addOutput("Static interference triggered.");
-          break;
-
-        default:
-          addOutput(
-            `Command not found: ${command}. Type "help" for commands.`,
-            "errorLine"
-          );
-      }
-    }
-
-    commandForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      const command = commandInput.value;
-
-      if (command.trim()) {
-        commandHistory.push(command);
-      }
-
-      historyIndex = commandHistory.length;
-      executeCommand(command);
-
-      commandInput.value = "";
-      updateCursorPosition();
-      commandInput.focus();
-    });
-
-    commandInput.addEventListener("input", updateCursorPosition);
+    commandInput.addEventListener("input", updateCursor);
 
     commandInput.addEventListener("keydown", (event) => {
       if (event.key === "ArrowUp") {
         event.preventDefault();
 
-        if (!commandHistory.length) {
+        if (commandHistory.length === 0) {
           return;
         }
 
         historyIndex = Math.max(0, historyIndex - 1);
         commandInput.value = commandHistory[historyIndex];
-        updateCursorPosition();
+        updateCursor();
       }
 
       if (event.key === "ArrowDown") {
         event.preventDefault();
 
-        if (!commandHistory.length) {
+        if (commandHistory.length === 0) {
           return;
         }
 
@@ -737,48 +331,33 @@
             ? ""
             : commandHistory[historyIndex];
 
-        updateCursorPosition();
+        updateCursor();
+      }
+    });
+
+    commandForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const command = commandInput.value.trim();
+
+      if (command) {
+        commandHistory.push(command);
       }
 
-      if (event.key === "Tab") {
-        event.preventDefault();
-
-        const commands = [
-          "help",
-          "clear",
-          "ascii",
-          "status",
-          "date",
-          "echo ",
-          "whoami",
-          "static"
-        ];
-
-        const typedText = commandInput.value.toLowerCase();
-
-        const match = commands.find((command) =>
-          command.startsWith(typedText)
-        );
-
-        if (match) {
-          commandInput.value = match;
-          updateCursorPosition();
-        }
-      }
+      historyIndex = commandHistory.length;
+      commandInput.value = "";
+      updateCursor();
     });
 
     document.addEventListener("click", () => {
       commandInput.focus();
-      updateCursorPosition();
+      updateCursor();
     });
 
-    window.addEventListener("resize", updateCursorPosition);
-
-    setInterval(createStaticGlitch, settings.glitchInterval);
-
+    window.addEventListener("resize", updateCursor);
     window.addEventListener("load", () => {
       commandInput.focus();
-      updateCursorPosition();
+      updateCursor();
     });
   </script>
 </body>
