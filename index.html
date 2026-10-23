@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
   <title>Terminal</title>
-
   <style>
     :root {
       --black: #000000;
       --white: #ffa66a99;
       --gray: #9a9a9a;
       --dark-gray: #222222;
+      --panel-gray: #111111;
+      --border: #444444;
+      --green: #91ff91;
+      --red: #ff5555;
     }
 
     * {
@@ -29,6 +33,23 @@
       font-weight: normal;
     }
 
+    button,
+    input,
+    textarea {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 1px solid #ffffff;
+      outline-offset: 2px;
+    }
+
     #terminalPage {
       position: relative;
       width: 100%;
@@ -45,22 +66,20 @@
       padding: 30px 6vw 100px;
       background: var(--black);
       color: var(--white);
+      scroll-behavior: smooth;
     }
 
-   #asciiArt {
-    width: auto;
-    /* margin: 5px; */
-    overflow-x: auto;
-    color: #ffa66a99;
-    font-family: "Courier New", Courier, monospace;
-    font-size: clamp(5px, 7.02px, 13px);
-    font-weight: normal;
-    line-height: .9;
-    text-align: center;
-    white-space: pre;
-    bottom: 50px;
-    /* position: fixed; */
-}
+    #asciiArt {
+      width: auto;
+      overflow-x: auto;
+      color: var(--white);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(5px, 7.02px, 13px);
+      font-weight: normal;
+      line-height: 0.9;
+      text-align: center;
+      white-space: pre;
+    }
 
     #scriptOutput {
       max-width: 1100px;
@@ -230,6 +249,341 @@
       }
     }
 
+    /*
+      CODE WORKSPACE
+    */
+
+    #codeWorkspace {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    #codeWorkspace.open {
+      display: flex;
+    }
+
+    #codeTop {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 52px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--border);
+      background: #050505;
+      color: #fff;
+    }
+
+    #codeTop span {
+      margin-right: auto;
+      color: #ffffff;
+      font-size: 13px;
+    }
+
+    #codeTop button {
+      border: 1px solid #ffffff;
+      padding: 6px 9px;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    #codeTop button:hover,
+    #codeTop button.active {
+      background: #fff;
+      color: #000;
+    }
+
+    #codeImageInput {
+      display: none;
+    }
+
+    #codeBody {
+      position: relative;
+      display: grid;
+      grid-template-columns: 180px minmax(220px, 1fr) minmax(280px, 1fr);
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #codeFiles {
+      min-width: 0;
+      overflow-y: auto;
+      padding: 10px;
+      border-right: 1px solid var(--border);
+      background: #000;
+    }
+
+    .codeFile {
+      display: block;
+      width: 100%;
+      margin-bottom: 5px;
+      border: 1px solid transparent;
+      padding: 9px;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+      text-align: left;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .codeFile:hover,
+    .codeFile.active {
+      border-color: #fff;
+    }
+
+    #editorPanel,
+    #previewPanel {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #editorPanel {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: #050505;
+    }
+
+    #previewPanel {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    .panelTitle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--border);
+      background: #111;
+      color: #fff;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    #previewPanel .panelTitle {
+      background: #eeeeee;
+      color: #000;
+      border-bottom-color: #bbbbbb;
+    }
+
+    #codeEditor {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      resize: none;
+      border: 0;
+      outline: 0;
+      padding: 15px;
+      background: #050505;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.5;
+      tab-size: 2;
+      white-space: pre;
+      overflow: auto;
+    }
+
+    #codePreview {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      flex: 1;
+      border: 0;
+      background: #fff;
+    }
+
+    .panelResizeHandle {
+      position: absolute;
+      top: 34px;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      width: 9px;
+      cursor: col-resize;
+      background: transparent;
+      touch-action: none;
+    }
+
+    .panelResizeHandle:hover,
+    .panelResizeHandle.resizing {
+      background: #ffffff55;
+    }
+
+    #previewPanel .panelResizeHandle {
+      left: 0;
+      right: auto;
+    }
+
+    #resizeHint {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      z-index: 4;
+      padding: 5px 8px;
+      border: 1px solid #777;
+      background: #000b;
+      color: #fff;
+      font-size: 10px;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    #resizeHint.hidden {
+      opacity: 0;
+    }
+
+    #previewFullscreenButton,
+    #inspectElementButton {
+      border: 1px solid #000;
+      padding: 3px 6px;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    #previewFullscreenButton:hover,
+    #inspectElementButton:hover,
+    #inspectElementButton.active {
+      background: #000;
+      color: #fff;
+    }
+
+    #previewControls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #previewPanel.preview-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #fff;
+    }
+
+    #previewPanel.preview-fullscreen #previewResizeHandle {
+      display: none;
+    }
+
+    /*
+      INSPECTOR
+    */
+
+    #inspectorPanel {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      z-index: 30;
+      display: none;
+      width: min(390px, calc(100% - 28px));
+      max-height: 55%;
+      overflow: auto;
+      border: 1px solid #fff;
+      background: #050505;
+      color: #fff;
+      box-shadow: 0 0 22px #000;
+    }
+
+    #inspectorPanel.open {
+      display: block;
+    }
+
+    .inspectorHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #555;
+      font-size: 11px;
+    }
+
+    #closeInspector {
+      border: 1px solid #fff;
+      padding: 3px 6px;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    #closeInspector:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    #inspectorDetails {
+      margin: 0;
+      padding: 10px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .inspect-hover {
+      outline: 2px solid #ff3333 !important;
+      outline-offset: 2px !important;
+      cursor: crosshair !important;
+    }
+
+    @media (max-width: 1000px) {
+      #codeBody {
+        grid-template-columns: 150px minmax(220px, 1fr) minmax(250px, 1fr);
+      }
+
+      #codeTop {
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 850px) {
+      #codeBody {
+        grid-template-columns: 130px 1fr;
+      }
+
+      #previewPanel {
+        position: fixed;
+        right: 10px;
+        bottom: 10px;
+        z-index: 20;
+        width: 45vw;
+        height: 38vh;
+        border: 1px solid #fff;
+        box-shadow: 0 0 20px #000;
+      }
+
+      #previewPanel .panelResizeHandle {
+        display: block;
+      }
+    }
+
     @media (max-width: 600px) {
       #terminalViewport {
         padding: 20px 12px 90px;
@@ -256,137 +610,181 @@
         width: 8px;
         height: 15px;
       }
+
+      #codeTop {
+        gap: 5px;
+        min-height: 48px;
+        padding: 0 6px;
+      }
+
+      #codeTop button {
+        padding: 5px 6px;
+        font-size: 9px;
+      }
+
+      #codeTop span {
+        font-size: 10px;
+      }
+
+      #codeBody {
+        grid-template-columns: 95px 1fr;
+      }
+
+      #previewPanel {
+        right: 6px;
+        bottom: 6px;
+        width: 55vw;
+        height: 35vh;
+      }
+
+      #codeEditor {
+        padding: 10px;
+        font-size: 11px;
+      }
+
+      #inspectorPanel {
+        right: 6px;
+        bottom: 6px;
+        width: calc(100% - 12px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
-
 <body>
   <main id="terminalPage">
     <div id="staticLayer"></div>
     <div id="scanlines"></div>
     <div id="glitchBlocks"></div>
+<section id="terminalViewport">
+  <pre id="asciiArt">
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                *@@.                                                        
+                               *@@@@@@                                                      
+                               +@@@@@@@@:                                                   
+                                @@@@@@@@@@                                                  
+                                :@@@@@@@@@@                                                 
+                                 @@@@@@@@@@@                                                
+                                 @@@@@@@@@:                                                 
+                                 @@@@@@@                                                    
+                                 @@@@@%  #@@@@@@@:     @@%                                  
+                                 @@@@@ :@@@@@@@@@@@@  @@@@@@                                
+                                       @@@@@@@@@@@@@@: @@@@@@                               
+                                       @@@@@@@@@@@@@@@ %@@@@@@.                             
+                            -@@@@@@@@.  +@@@@@@@@@@@@@@ @@@@@@@                             
+                           @@@@@@@@@@@@  @@@@@@@@@@@@@@ @@@@@@@@                            
+                       @@  @@@@@@@@@@@@@. @@@@@@@@@@@@@@ @@@@@@@@                           
+                     @@@@@  @@@@@@@@@@@@@- @@@@@@@@@@@@@ @@@@@@@@                           
+                    @@@@@@% @@@@@@@@@@@@@@ .@@@@@@@@@@@@ @@@@@@@@%                          
+                   @@@@@@@@  @@@@@@@@@@@@@@ :@@@@@@@@@@@ @@@@@@@@@                          
+                  @@@@@@@@@. @@@@@@@@@@@@@@ :@@@@@@@@@@@ @@@@@@@@@      @@                  
+                 @@@@@@@@@@@ @@@@@@@@@@@@@@@ @@@@@@@@@@@ @@@@@@@@@     @@@@.                
+                @@@@@@@@@@@@ @@@@@@@@@@@@@@@ +@@@@@@@@@@ @@@@@@@@@     @@@@@                
+               -@@@@@@@@@@@@ +@@@@@@@@@@@@@@% @@@@@@@@@@ @@@@@@@@@     @@@@                 
+               @@@@@@@@@@@@@ .@@@@@@@@@@@@@@@ @@@@@@@@@@ @@@@@@@@@     @@@:                 
+              @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@ @@@@@@@@@  @@@@@@@@@    @@@#                  
+              @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@:*@@@@@@@@  @@@@@@@@@    @@@                   
+             @@@@@@@@@@@@@@@     +@@@@@@@@@@@=-@@@@@@@    @@@@@@@%    @@  %                 
+             @@@@@@@@@@@@@@        .@@@@@@@@@* @@@@@@      @@@@@@     @  %@@                
+             @@@@@@@@@@@@@           @@@@@@@@% @@@@@        @@@@@       .@@@.               
+            @@@@@@@@@@@@%             =@@@@@@*.@@@@.        -@@@        @@@@@               
+            @@@@@@@@@@@=               %@@@@@+*@@@.          @@@       @@@@@*               
+            @@@@@@@@@@-                 @@@@@ @@@         .@- @       @@@@                  
+            @@@@@@@@@*                   @@@@ @@=    *=   @@         @@*                    
+            @@@@@@@@@                    @@@@ @+    #@@* :@#                                
+            @@@@@@@@                      @@  :    .@@@@+@@                                 
+            @@@@@@@                       @#       @@  @@@=                                 
+            @@@@@@@                                @@   @@                                  
+            @@@@@@-                                @@+                                      
+            @@@@@@                                  @@:                                     
+            @@@@@@                       :-*--       @@=           @@                       
+            %@@@@@                     @@@@@@@@@      @@%          @@%                      
+            +@@@@@                    @@@@@@@@@@@      @@          @@@                      
+            *@@@@@                   @@@@@@@@@@@@                  @@@@                     
+            @@@@@@                  @@@@@@@@@@@@        @@        -@@@@                     
+            @@@@@@.                 @@@@@@@@@@@         @@@       @@@@@                     
+            @@@@@@@                 @@@@@@@@@@         :@@@@      @@@@@@                    
+            @@@@@@@               + @@@@@@@@@          @@@@@%    @@@@@@@                    
+            @@@@@@@@             @@@ @@@@@@@           @@@@@@   @@@@@@@@                    
+            @@@@@@@@-           @@@@@ @@@@@@          @@@@@@@. @@@@@@@@@                    
+            @@@@@@@@@          @@@@@@@ :@@@          #@@@@@@@@ @@@@@@@@@                    
+           %@@@@@@@@@@        @@@@@@@@@             :@@@@@@@@@ @@@@@@@@@                    
+           @@@@@@@@@@@@=    .@@@@@@@@@@@=          .@@@@@@@@@@ @@@@@@@@@                    
+           @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@-       =@@@@@@@@@@@ @@@@@@@@@                    
+           @@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@+    @@@@@@@@@@@@@ @@@@@@@@@                    
+           @@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@+  @@@@@@@@@@@@@@ #@@@@@@@@                    
+          +@@@@@@@@@@@@@@@@ +@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@ .@@@@@@@@                    
+          *@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@.+@@@@@@@@@@@@@@  @@@@@@@@                    
+          *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@: @@@@@@@@@@@@@@ =@@@@@@@                     
+          *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@@                     
+          *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@@                     
+          +@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@                      
+           @@@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@+ @@@@@@@@@@@@@@ @@@@@@@                      
+           @@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@:%@@@@@@@@@@@@@- @@@@@@@                      
+           %@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ +@@@@@@                       
+            @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@                       
+            =@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@% @@@@@@@@@@@@@* @@@@@@                        
+             #@@@@@@@@@@@ -@@@@@@@@@@@@@@@@@@ =@@@@@@@@@@@@@ *@@@@@*                        
+              .@@@@@@@@@= @@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@                         
+                @@@@@@@=  @@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@ :@@@@@                          
+                  .-=:   @@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@- @@@@@                           
+                         #@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@ -@@@@                            
+                           @@@@@@@@@@@@@@@  @@@@@@@@@@@@#   @@                              
+                             @@@@@@@@@@@:  +@@@@@@@@@@@                                     
+                                            :@@@@@@@                                        
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+  </pre>
 
-    <section id="terminalViewport">
-      <pre id="asciiArt">
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                        *@@.                                                        
-                                       *@@@@@@                                                      
-                                       +@@@@@@@@:                                                   
-                                        @@@@@@@@@@                                                  
-                                        :@@@@@@@@@@                                                 
-                                         @@@@@@@@@@@                                                
-                                         @@@@@@@@@:                                                 
-                                         @@@@@@@                                                    
-                                         @@@@@%  #@@@@@@@:     @@%                                  
-                                         @@@@@ :@@@@@@@@@@@@  @@@@@@                                
-                                               @@@@@@@@@@@@@@: @@@@@@                               
-                                               @@@@@@@@@@@@@@@ %@@@@@@.                             
-                                    -@@@@@@@@.  +@@@@@@@@@@@@@@ @@@@@@@                             
-                                   @@@@@@@@@@@@  @@@@@@@@@@@@@@ @@@@@@@@                            
-                               @@  @@@@@@@@@@@@@. @@@@@@@@@@@@@@ @@@@@@@@                           
-                             @@@@@  @@@@@@@@@@@@@- @@@@@@@@@@@@@ @@@@@@@@                           
-                            @@@@@@% @@@@@@@@@@@@@@ .@@@@@@@@@@@@ @@@@@@@@%                          
-                           @@@@@@@@  @@@@@@@@@@@@@@ @@@@@@@@@@@@ @@@@@@@@@                          
-                          @@@@@@@@@. @@@@@@@@@@@@@@ :@@@@@@@@@@@ @@@@@@@@@      @@                  
-                         @@@@@@@@@@@ @@@@@@@@@@@@@@@ @@@@@@@@@@@ @@@@@@@@@     @@@@.                
-                        @@@@@@@@@@@@ @@@@@@@@@@@@@@@ +@@@@@@@@@@ @@@@@@@@@     @@@@@                
-                       -@@@@@@@@@@@@ +@@@@@@@@@@@@@@% @@@@@@@@@@ @@@@@@@@@     @@@@                 
-                       @@@@@@@@@@@@@ .@@@@@@@@@@@@@@@ @@@@@@@@@@ @@@@@@@@@     @@@:                 
-                      @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@ @@@@@@@@@  @@@@@@@@@    @@@#                  
-                      @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@:*@@@@@@@@  @@@@@@@@@    @@@                   
-                     @@@@@@@@@@@@@@@     +@@@@@@@@@@@=-@@@@@@@    @@@@@@@%    @@  %                 
-                     @@@@@@@@@@@@@@        .@@@@@@@@@* @@@@@@      @@@@@@     @  %@@                
-                     @@@@@@@@@@@@@           @@@@@@@@% @@@@@        @@@@@       .@@@.               
-                    @@@@@@@@@@@@%             =@@@@@@*.@@@@.        -@@@        @@@@@               
-                    @@@@@@@@@@@=               %@@@@@+*@@@.          @@@       @@@@@*               
-                    @@@@@@@@@@-                 @@@@@ @@@         .@- @       @@@@                  
-                    @@@@@@@@@*                   @@@@ @@=    *=   @@         @@*                    
-                    @@@@@@@@@                    @@@@ @+    #@@* :@#                                
-                    @@@@@@@@                      @@  :    .@@@@+@@                                 
-                    @@@@@@@                       @#       @@  @@@=                                 
-                    @@@@@@@                                @@   @@                                  
-                    @@@@@@-                                @@+                                      
-                    @@@@@@                                  @@:                                     
-                    @@@@@@                       :-*--       @@=           @@                       
-                    %@@@@@                     @@@@@@@@@      @@%          @@%                      
-                    +@@@@@                    @@@@@@@@@@@      @@          @@@                      
-                    *@@@@@                   @@@@@@@@@@@@                  @@@@                     
-                    @@@@@@                  @@@@@@@@@@@@        @@        -@@@@                     
-                    @@@@@@.                 @@@@@@@@@@@         @@@       @@@@@                     
-                    @@@@@@@                 @@@@@@@@@@         :@@@@      @@@@@@                    
-                    @@@@@@@               + @@@@@@@@@          @@@@@%    @@@@@@@                    
-                    @@@@@@@@             @@@ @@@@@@@           @@@@@@   @@@@@@@@                    
-                    @@@@@@@@-           @@@@@ @@@@@@          @@@@@@@. @@@@@@@@@                    
-                    @@@@@@@@@          @@@@@@@ :@@@          #@@@@@@@@ @@@@@@@@@                    
-                   %@@@@@@@@@@        @@@@@@@@@             :@@@@@@@@@ @@@@@@@@@                    
-                   @@@@@@@@@@@@=    .@@@@@@@@@@@=          .@@@@@@@@@@ @@@@@@@@@                    
-                   @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@-       =@@@@@@@@@@@ @@@@@@@@@                    
-                   @@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@+    @@@@@@@@@@@@@ @@@@@@@@@                    
-                   @@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@+  @@@@@@@@@@@@@@ #@@@@@@@@                    
-                  +@@@@@@@@@@@@@@@@ +@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@ .@@@@@@@@                    
-                  *@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@.+@@@@@@@@@@@@@@  @@@@@@@@                    
-                  *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@: @@@@@@@@@@@@@@ =@@@@@@@                     
-                  *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@@                     
-                  *@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@@                     
-                  +@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@                      
-                   @@@@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@+ @@@@@@@@@@@@@@ @@@@@@@                      
-                   @@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@:%@@@@@@@@@@@@@- @@@@@@@                      
-                   %@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ +@@@@@@                       
-                    @@@@@@@@@@@@@@  @@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@@                       
-                    =@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@% @@@@@@@@@@@@@* @@@@@@                        
-                     #@@@@@@@@@@@ -@@@@@@@@@@@@@@@@@@ =@@@@@@@@@@@@@ *@@@@@*                        
-                      .@@@@@@@@@= @@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@ @@@@@@                         
-                        @@@@@@@=  @@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@ :@@@@@                          
-                          .-=:   @@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@- @@@@@                           
-                                 #@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@ -@@@@                            
-                                   @@@@@@@@@@@@@@@  @@@@@@@@@@@@#   @@                              
-                                     @@@@@@@@@@@:  +@@@@@@@@@@@                                     
-                                                    :@@@@@@@                                        
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-        </pre>
+  <div id="scriptOutput"></div>
+</section>
 
-      <div id="scriptOutput"></div>
-    </section>
+<form id="commandForm" autocomplete="off">
+  <div id="inputWrapper">
+    <input
+      id="commandInput"
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="type a command"
+    />
+    <span id="cursor"></span>
+  </div>
+</form>
 
-    <form id="commandForm" autocomplete="off">
-      <div id="inputWrapper">
-        <input
-          id="commandInput"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="type a command"
-        />
-
-        <span id="cursor"></span>
-      </div>
-    </form>
   </main>
-
   <script>
+    "use strict";
+
     const commandForm = document.getElementById("commandForm");
     const commandInput = document.getElementById("commandInput");
     const inputWrapper = document.getElementById("inputWrapper");
@@ -412,13 +810,71 @@
     let commandHistory = [];
     let historyIndex = -1;
     let bootIndex = 0;
+    let typingQueue = Promise.resolve();
+    let activeTypingToken = 0;
 
-    function addOutput(text = "", className = "") {
+    function scrollTerminal() {
+      terminalViewport.scrollTop = terminalViewport.scrollHeight;
+    }
+
+    function addOutputInstant(text = "", className = "") {
       const line = document.createElement("div");
       line.className = `scriptLine ${className}`;
       line.textContent = text;
       scriptOutput.appendChild(line);
-      terminalViewport.scrollTop = terminalViewport.scrollHeight;
+      scrollTerminal();
+      return line;
+    }
+
+    function typeOutput(text = "", className = "", speed = 22) {
+      const token = activeTypingToken;
+
+      typingQueue = typingQueue.then(() => {
+        if (token !== activeTypingToken) {
+          return;
+        }
+
+        return new Promise((resolve) => {
+          const line = document.createElement("div");
+          line.className = `scriptLine ${className}`;
+          scriptOutput.appendChild(line);
+
+          if (!text) {
+            scrollTerminal();
+            resolve();
+            return;
+          }
+
+          let index = 0;
+
+          function typeNextCharacter() {
+            if (token !== activeTypingToken) {
+              resolve();
+              return;
+            }
+
+            line.textContent = text.slice(0, index);
+            index++;
+            scrollTerminal();
+
+            if (index <= text.length) {
+              window.setTimeout(typeNextCharacter, speed);
+            } else {
+              resolve();
+            }
+          }
+
+          typeNextCharacter();
+        });
+      });
+
+      return typingQueue;
+    }
+
+    function clearOutput() {
+      activeTypingToken++;
+      typingQueue = Promise.resolve();
+      scriptOutput.replaceChildren();
     }
 
     function updateCursor() {
@@ -453,20 +909,20 @@
 
       glitchBlocks.appendChild(block);
 
-      setTimeout(() => {
+      window.setTimeout(() => {
         block.remove();
       }, 220);
     }
 
     function runBootMessage() {
       if (bootIndex >= bootMessages.length) {
-        clearInterval(bootTimer);
-        addOutput("[system] ready", "bright");
-        addOutput("");
+        window.clearInterval(bootTimer);
+        addOutputInstant("[system] ready", "bright");
+        addOutputInstant("");
         return;
       }
 
-      addOutput(
+      addOutputInstant(
         bootMessages[bootIndex],
         bootIndex % 3 === 0 ? "bright" : "dim"
       );
@@ -474,17 +930,17 @@
       bootIndex++;
     }
 
-    const bootTimer = setInterval(runBootMessage, 480);
+    const bootTimer = window.setInterval(runBootMessage, 480);
 
     function runCommand(rawCommand) {
       const commandLine = rawCommand.trim();
 
       if (!commandLine) {
-        addOutput("");
+        typeOutput("");
         return;
       }
 
-      addOutput(`$ ${commandLine}`, "bright");
+      typeOutput(`$ ${commandLine}`, "bright", 14);
 
       const parts = commandLine.split(/\s+/);
       const command = parts[0].toLowerCase();
@@ -492,88 +948,92 @@
 
       switch (command) {
         case "help":
-          addOutput("help       list commands");
-          addOutput("clear      clear output");
-          addOutput("status     show running processes");
-          addOutput("scan       scan simulated files");
-          addOutput("run TEXT   run simulated script");
-          addOutput("echo TEXT  print text");
-          addOutput("date       show current date and time");
-          addOutput("whoami     show current user");
-          addOutput("glitch     create static interference");
-          addOutput("code       open the browser code workspace");
-          addOutput("");
+          typeOutput("help       list commands");
+          typeOutput("clear      clear output");
+          typeOutput("status     show running processes");
+          typeOutput("scan       scan simulated files");
+          typeOutput("run TEXT   run simulated script");
+          typeOutput("echo TEXT  print text");
+          typeOutput("date       show current date and time");
+          typeOutput("whoami     show current user");
+          typeOutput("glitch     create static interference");
+          typeOutput("code       open the browser code workspace");
+          typeOutput("");
           break;
 
         case "clear":
         case "cls":
-          scriptOutput.innerHTML = "";
+          clearOutput();
           break;
 
         case "status":
-          addOutput("process monitor");
-          addOutput("  renderer       running");
-          addOutput("  static-engine  running");
-          addOutput("  input-stream   ready");
-          addOutput("  live-preview   standby");
-          addOutput("  network        disabled");
+          typeOutput("process monitor");
+          typeOutput("  renderer       running");
+          typeOutput("  static-engine  running");
+          typeOutput("  input-stream   ready");
+          typeOutput("  live-preview   standby");
+          typeOutput("  network        disabled");
           break;
 
         case "scan":
-          addOutput("scanning simulated project tree...");
-          addOutput("/system");
-          addOutput("/runtime");
-          addOutput("/workspace");
-          addOutput("/workspace/index.html");
-          addOutput("/workspace/style.css");
-          addOutput("/workspace/script.js");
-          addOutput("scan complete");
+          typeOutput("scanning simulated project tree...");
+          typeOutput("/system");
+          typeOutput("/runtime");
+          typeOutput("/workspace");
+          typeOutput("/workspace/index.html");
+          typeOutput("/workspace/style.css");
+          typeOutput("/workspace/script.js");
+          typeOutput("scan complete");
           break;
 
         case "run":
-          addOutput(
+          typeOutput(
             argument
               ? `starting simulated process: ${argument}`
               : "starting simulated process"
           );
 
           for (let i = 1; i <= 6; i++) {
-            setTimeout(() => {
-              addOutput(`[process] output stream ${i}/6`);
+            window.setTimeout(() => {
+              typeOutput(`[process] output stream ${i}/6`);
             }, i * 280);
           }
           break;
 
         case "echo":
-          addOutput(argument);
+          typeOutput(argument);
           break;
 
         case "date":
         case "time":
-          addOutput(new Date().toString());
+          typeOutput(new Date().toString());
           break;
 
         case "whoami":
-          addOutput("user");
+          typeOutput("user");
           break;
 
         case "glitch":
           for (let i = 0; i < 8; i++) {
-            setTimeout(createGlitchBlock, i * 70);
+            window.setTimeout(createGlitchBlock, i * 70);
           }
 
-          addOutput("static interference triggered");
+          typeOutput("static interference triggered");
           break;
 
         case "code":
         case "/code":
-          window.location.hash = "code";
-          openCodeWorkspace();
+          typeOutput("opening browser code workspace...", "bright", 16);
+
+          window.setTimeout(() => {
+            window.location.hash = "code";
+            openCodeWorkspace();
+          }, 450);
           break;
 
         default:
-          addOutput(`command not found: ${command}`);
-          addOutput('type "help" for commands');
+          typeOutput(`command not found: ${command}`);
+          typeOutput('type "help" for commands');
       }
     }
 
@@ -597,6 +1057,13 @@
     commandInput.addEventListener("input", updateCursor);
 
     commandInput.addEventListener("keydown", (event) => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        commandInput.value += "  ";
+        updateCursor();
+        return;
+      }
+
       if (event.key === "ArrowUp") {
         event.preventDefault();
 
@@ -630,182 +1097,166 @@
       }
     });
 
-    document.addEventListener("click", () => {
-      commandInput.focus();
-      updateCursor();
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("#codeWorkspace")) {
+        commandInput.focus();
+        updateCursor();
+      }
     });
 
     window.addEventListener("resize", updateCursor);
 
-    /* /code workspace */
+    /*
+      CODE WORKSPACE
+    */
 
     const codeWorkspace = document.createElement("section");
     codeWorkspace.id = "codeWorkspace";
+
     codeWorkspace.innerHTML = `
       <div id="codeTop">
-        <button id="closeCode">TERMINAL</button>
+        <button id="closeCode" type="button">TERMINAL</button>
         <span>/code</span>
-        <button id="newCodeFile">NEW FILE</button>
-        <button id="uploadCodeImage">UPLOAD IMAGE</button>
+        <button id="newCodeFile" type="button">NEW FILE</button>
+        <button id="uploadCodeImage" type="button">UPLOAD IMAGE</button>
+        <button id="inspectElementButton" type="button">
+          INSPECT ELEMENT
+        </button>
         <input id="codeImageInput" type="file" accept="image/*">
       </div>
 
       <div id="codeBody">
         <aside id="codeFiles"></aside>
 
-        <textarea id="codeEditor" spellcheck="false"></textarea>
+        <section id="editorPanel">
+          <div class="panelTitle">
+            <span>CODE EDITOR</span>
+            <span id="editorSizeLabel">EDITOR</span>
+          </div>
 
-        <iframe id="codePreview" title="Live preview"></iframe>
+          <textarea
+            id="codeEditor"
+            spellcheck="false"
+            aria-label="Code editor"
+          ></textarea>
+      <div
+        class="panelResizeHandle"
+        id="editorResizeHandle"
+        title="Drag to resize code editor"
+      ></div>
+    </section>
+
+    <section id="previewPanel">
+      <div class="panelTitle">
+        <span>DISPLAY</span>
+
+        <div id="previewControls">
+          <button
+            id="previewFullscreenButton"
+            type="button"
+            title="Fullscreen display"
+            aria-label="Fullscreen display"
+          >
+            FULLSCREEN
+          </button>
+        </div>
       </div>
-    `;
 
-    document.body.appendChild(codeWorkspace);
+      <iframe
+        id="codePreview"
+        title="Live preview"
+        allowfullscreen
+      ></iframe>
 
-    const codeStyle = document.createElement("style");
-    codeStyle.textContent = `
-      #codeWorkspace {
-        position: fixed;
-        inset: 0;
-        z-index: 100;
-        display: none;
-        flex-direction: column;
-        background: #000;
-        color: #fff;
-        font-family: "Courier New", Courier, monospace;
-      }
+      <div
+        class="panelResizeHandle"
+        id="previewResizeHandle"
+        title="Drag to resize display panel"
+      ></div>
 
-      #codeWorkspace.open {
-        display: flex;
-      }
+      <div id="resizeHint">
+        DRAG THE PANEL EDGES TO RESIZE
+      </div>
 
-      #codeTop {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-height: 52px;
-        padding: 0 12px;
-        border-bottom: 1px solid #555;
-        color: #fff;
-      }
+      <div id="inspectorPanel">
+        <div class="inspectorHeader">
+          <span>ELEMENT INSPECTOR</span>
+          <button id="closeInspector" type="button">
+            CLOSE
+          </button>
+        </div>
 
-      #codeTop button {
-        border: 1px solid #fff;
-        padding: 6px 9px;
-        background: #000;
-        color: #fff;
-        font-family: inherit;
-        font-size: 12px;
-      }
+        <pre id="inspectorDetails">
 
-      #codeTop button:hover {
-        background: #fff;
-        color: #000;
-      }
+Click INSPECT ELEMENT, then click an element in the preview.
+</pre>
+</div>
+</section>
+</div>
+`;
+document.body.appendChild(codeWorkspace);
 
-      #codeImageInput {
-        display: none;
-      }
+const codeFilesElement =
+  document.getElementById("codeFiles");
 
-      #codeBody {
-        display: grid;
-        grid-template-columns: 190px minmax(250px, 1fr) minmax(300px, 1fr);
-        flex: 1;
-        min-height: 0;
-      }
+const codeEditorElement =
+  document.getElementById("codeEditor");
 
-      #codeFiles {
-        overflow-y: auto;
-        padding: 10px;
-        border-right: 1px solid #555;
-      }
+const codePreviewElement =
+  document.getElementById("codePreview");
 
-      .codeFile {
-        display: block;
-        width: 100%;
-        margin-bottom: 5px;
-        border: 1px solid transparent;
-        padding: 9px;
-        background: #000;
-        color: #fff;
-        text-align: left;
-        font-family: inherit;
-        font-size: 12px;
-      }
+const closeCodeButton =
+  document.getElementById("closeCode");
 
-      .codeFile:hover,
-      .codeFile.active {
-        border-color: #fff;
-      }
+const newCodeFileButton =
+  document.getElementById("newCodeFile");
 
-      #codeEditor {
-        width: 100%;
-        height: 100%;
-        resize: none;
-        border: 0;
-        outline: 0;
-        padding: 15px;
-        background: #050505;
-        color: #fff;
-        font-family: inherit;
-        font-size: 13px;
-        line-height: 1.5;
-        tab-size: 2;
-      }
+const uploadCodeImageButton =
+  document.getElementById("uploadCodeImage");
 
-      #codePreview {
-        width: 100%;
-        height: 100%;
-        border: 0;
-        background: #fff;
-      }
+const inspectElementButton =
+  document.getElementById("inspectElementButton");
 
-      @media (max-width: 850px) {
-        #codeBody {
-          grid-template-columns: 145px 1fr;
-        }
+const codeImageInput =
+  document.getElementById("codeImageInput");
 
-        #codePreview {
-          position: fixed;
-          right: 10px;
-          bottom: 10px;
-          width: 43vw;
-          height: 35vh;
-          border: 1px solid #fff;
-        }
-      }
+const editorPanel =
+  document.getElementById("editorPanel");
 
-      @media (max-width: 600px) {
-        #codeBody {
-          grid-template-columns: 110px 1fr;
-        }
+const previewPanel =
+  document.getElementById("previewPanel");
 
-        #codePreview {
-          display: none;
-        }
+const codeBody =
+  document.getElementById("codeBody");
 
-        #codeTop {
-          font-size: 11px;
-        }
-      }
-    `;
+const editorResizeHandle =
+  document.getElementById("editorResizeHandle");
 
-    document.head.appendChild(codeStyle);
+const previewResizeHandle =
+  document.getElementById("previewResizeHandle");
 
-    const codeFilesElement = document.getElementById("codeFiles");
-    const codeEditorElement = document.getElementById("codeEditor");
-    const codePreviewElement = document.getElementById("codePreview");
-    const closeCodeButton = document.getElementById("closeCode");
-    const newCodeFileButton = document.getElementById("newCodeFile");
-    const uploadCodeImageButton =
-      document.getElementById("uploadCodeImage");
-    const codeImageInput =
-      document.getElementById("codeImageInput");
+const previewFullscreenButton =
+  document.getElementById("previewFullscreenButton");
 
-    let codeFiles = {
-      "index.html": `<!DOCTYPE html>
+const inspectorPanel =
+  document.getElementById("inspectorPanel");
+
+const inspectorDetails =
+  document.getElementById("inspectorDetails");
+
+const closeInspectorButton =
+  document.getElementById("closeInspector");
+
+const resizeHint =
+  document.getElementById("resizeHint");
+
+let codeFiles = {
+  "index.html": `<!DOCTYPE html>
+
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Live Project</title>
 </head>
 <body>
@@ -813,179 +1264,804 @@
   <p>Edit this file and watch the preview update.</p>
 </body>
 </html>`,
-      "style.css": `body {
-  font-family: monospace;
-  padding: 40px;
+  "style.css": `body {
+
+font-family: monospace;
+padding: 40px;
 }`,
-      "script.js": `console.log("Live project running");`
-    };
+  "script.js": `console.log("Live project running");`
+};
 
-    let activeCodeFile = "index.html";
+let activeCodeFile = "index.html";
+let inspectorActive = false;
+let highlightedElement = null;
+let savedPanelSizes = loadPanelSizes();
 
-    function saveCodeFiles() {
+function saveCodeFiles() {
+  try {
+    localStorage.setItem(
+      "ascii-terminal-code-files",
+      JSON.stringify(codeFiles)
+    );
+  } catch (error) {
+    console.warn("Could not save project files.", error);
+  }
+}
+
+function loadSavedCodeFiles() {
+  const saved = localStorage.getItem(
+    "ascii-terminal-code-files"
+  );
+
+  if (!saved) {
+    return;
+  }
+
+  try {
+    const parsedFiles = JSON.parse(saved);
+
+    if (
+      parsedFiles &&
+      typeof parsedFiles === "object" &&
+      !Array.isArray(parsedFiles)
+    ) {
+      codeFiles = parsedFiles;
+    }
+  } catch {
+    console.warn("Could not load saved project.");
+  }
+}
+
+function savePanelSizes() {
+  try {
+    const columns = getComputedStyle(codeBody)
+      .gridTemplateColumns
+      .split(" ")
+      .map((value) => parseFloat(value));
+
+    if (columns.length >= 3) {
       localStorage.setItem(
-        "ascii-terminal-code-files",
-        JSON.stringify(codeFiles)
+        "ascii-terminal-panel-sizes",
+        JSON.stringify({
+          files: columns[0],
+          editor: columns[1],
+          preview: columns[2]
+        })
       );
     }
+  } catch (error) {
+    console.warn("Could not save panel sizes.", error);
+  }
+}
 
-    function renderCodeFiles() {
-      codeFilesElement.innerHTML = "";
+function loadPanelSizes() {
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem(
+        "ascii-terminal-panel-sizes"
+      ) || "null"
+    );
 
-      Object.keys(codeFiles).forEach((filename) => {
-        const button = document.createElement("button");
-        button.className = "codeFile";
-        button.textContent = filename;
+    if (
+      saved &&
+      Number.isFinite(saved.files) &&
+      Number.isFinite(saved.editor) &&
+      Number.isFinite(saved.preview)
+    ) {
+      return saved;
+    }
+  } catch {
+    console.warn("Could not load panel sizes.");
+  }
 
-        if (filename === activeCodeFile) {
-          button.classList.add("active");
-        }
+  return {
+    files: 180,
+    editor: 420,
+    preview: 420
+  };
+}
 
-        button.addEventListener("click", () => {
-          codeFiles[activeCodeFile] = codeEditorElement.value;
-          activeCodeFile = filename;
-          renderCodeFiles();
-          loadCodeFile();
-          updateCodePreview();
-        });
+function applySavedPanelSizes() {
+  const availableWidth =
+    codeBody.getBoundingClientRect().width;
 
-        codeFilesElement.appendChild(button);
-      });
+  if (!availableWidth || window.innerWidth <= 850) {
+    return;
+  }
+
+  const minimumEditor = 220;
+  const minimumPreview = 280;
+  const filesWidth = Math.max(120, savedPanelSizes.files);
+
+  const remainingWidth =
+    availableWidth - filesWidth;
+
+  const editorWidth = Math.max(
+    minimumEditor,
+    Math.min(
+      remainingWidth - minimumPreview,
+      savedPanelSizes.editor
+    )
+  );
+
+  const previewWidth = Math.max(
+    minimumPreview,
+    remainingWidth - editorWidth
+  );
+
+  codeBody.style.gridTemplateColumns =
+    `${filesWidth}px ${editorWidth}px ${previewWidth}px`;
+}
+
+function renderCodeFiles() {
+  codeFilesElement.replaceChildren();
+
+  Object.keys(codeFiles).forEach((filename) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "codeFile";
+    button.textContent = filename;
+
+    if (filename === activeCodeFile) {
+      button.classList.add("active");
     }
 
-    function loadCodeFile() {
-      codeEditorElement.value = codeFiles[activeCodeFile] || "";
-    }
+    button.addEventListener("click", () => {
+      codeFiles[activeCodeFile] =
+        codeEditorElement.value;
 
-    function updateCodePreview() {
-      codeFiles[activeCodeFile] = codeEditorElement.value;
-      saveCodeFiles();
-
-      const html = codeFiles["index.html"] || "";
-      const css = `<style>${codeFiles["style.css"] || ""}</style>`;
-      const js = `<script>${codeFiles["script.js"] || ""}<\/script>`;
-
-      codePreviewElement.srcdoc = `
-        ${html}
-        ${css}
-        ${js}
-      `;
-    }
-
-    function openCodeWorkspace() {
-      codeWorkspace.classList.add("open");
-      terminalPage.style.display = "none";
-      renderCodeFiles();
-      loadCodeFile();
-      updateCodePreview();
-    }
-
-    function closeCodeWorkspace() {
-      codeFiles[activeCodeFile] = codeEditorElement.value;
-      saveCodeFiles();
-      codeWorkspace.classList.remove("open");
-      terminalPage.style.display = "block";
-      commandInput.focus();
-    }
-
-    codeEditorElement.addEventListener("input", updateCodePreview);
-
-    closeCodeButton.addEventListener("click", closeCodeWorkspace);
-
-    newCodeFileButton.addEventListener("click", () => {
-      const filename = prompt(
-        "New file name:",
-        "new-file.html"
-      );
-
-      if (!filename || codeFiles[filename]) {
-        return;
-      }
-
-      codeFiles[filename] = "";
       activeCodeFile = filename;
+
       renderCodeFiles();
       loadCodeFile();
       updateCodePreview();
     });
 
-    uploadCodeImageButton.addEventListener("click", () => {
-      codeImageInput.click();
+    codeFilesElement.appendChild(button);
+  });
+}
+
+function loadCodeFile() {
+  codeEditorElement.value =
+    codeFiles[activeCodeFile] || "";
+}
+
+function updateCodePreview() {
+  stopInspecting();
+
+  codeFiles[activeCodeFile] =
+    codeEditorElement.value;
+
+  saveCodeFiles();
+
+  const html = codeFiles["index.html"] || "";
+  const css =
+    `<style>${codeFiles["style.css"] || ""}</style>`;
+  const js =
+    `<script>${codeFiles["script.js"] || ""}<\/script>`;
+
+  codePreviewElement.srcdoc = `
+    ${html}
+    ${css}
+    ${js}
+  `;
+
+  resizeHint.classList.remove("hidden");
+
+  window.setTimeout(() => {
+    resizeHint.classList.add("hidden");
+  }, 3500);
+}
+
+function openCodeWorkspace() {
+  codeWorkspace.classList.add("open");
+  terminalPage.style.display = "none";
+
+  renderCodeFiles();
+  loadCodeFile();
+  updateCodePreview();
+
+  window.setTimeout(() => {
+    applySavedPanelSizes();
+  }, 0);
+
+  codeEditorElement.focus();
+}
+
+function closeCodeWorkspace() {
+  stopInspecting();
+
+  codeFiles[activeCodeFile] =
+    codeEditorElement.value;
+
+  saveCodeFiles();
+  savePanelSizes();
+
+  codeWorkspace.classList.remove("open");
+  terminalPage.style.display = "block";
+
+  commandInput.focus();
+  updateCursor();
+}
+
+function setPreviewFullscreen() {
+  if (
+    document.fullscreenElement === previewPanel ||
+    previewPanel.classList.contains("preview-fullscreen")
+  ) {
+    exitPreviewFullscreen();
+    return;
+  }
+
+  if (previewPanel.requestFullscreen) {
+    previewPanel.requestFullscreen().catch(() => {
+      previewPanel.classList.add("preview-fullscreen");
+      updateFullscreenButton();
     });
+  } else {
+    previewPanel.classList.add("preview-fullscreen");
+    updateFullscreenButton();
+  }
+}
 
-    codeImageInput.addEventListener("change", () => {
-      const file = codeImageInput.files[0];
+function exitPreviewFullscreen() {
+  if (document.fullscreenElement === previewPanel) {
+    document.exitFullscreen().catch(() => {});
+  }
 
-      if (!file) {
-        return;
+  previewPanel.classList.remove("preview-fullscreen");
+  updateFullscreenButton();
+}
+
+function updateFullscreenButton() {
+  const isFullscreen =
+    document.fullscreenElement === previewPanel ||
+    previewPanel.classList.contains("preview-fullscreen");
+
+  previewFullscreenButton.textContent =
+    isFullscreen
+      ? "EXIT FULLSCREEN"
+      : "FULLSCREEN";
+}
+
+function getPreviewDocument() {
+  return codePreviewElement.contentDocument;
+}
+
+function getElementPath(element) {
+  const previewDocument =
+    getPreviewDocument();
+
+  if (!previewDocument || !element) {
+    return "";
+  }
+
+  const path = [];
+
+  while (
+    element &&
+    element.nodeType === Node.ELEMENT_NODE &&
+    element !== previewDocument.body
+  ) {
+    let name = element.tagName.toLowerCase();
+
+    if (element.id) {
+      name += `#${element.id}`;
+    }
+
+    if (
+      typeof element.className === "string" &&
+      element.className.trim()
+    ) {
+      const classes = element.className
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .join(".");
+
+      if (classes) {
+        name += `.${classes}`;
       }
+    }
 
-      const reader = new FileReader();
+    path.unshift(name);
+    element = element.parentElement;
+  }
 
-      reader.addEventListener("load", () => {
+  return path.join(" > ");
+}
+
+function inspectPreviewElement(element) {
+  if (!element || element === getPreviewDocument()?.body) {
+    return;
+  }
+
+  const previewWindow =
+    codePreviewElement.contentWindow;
+
+  const styles =
+    previewWindow.getComputedStyle(element);
+
+  const rectangle =
+    element.getBoundingClientRect();
+
+  const attributes =
+    Array.from(element.attributes || [])
+      .map((attribute) =>
+        `${attribute.name}="${attribute.value}"`
+      )
+      .join("\n");
+
+  const details = [
+    `tag: ${element.tagName.toLowerCase()}`,
+    `id: ${element.id || "(none)"}`,
+    `classes: ${
+      typeof element.className === "string" &&
+      element.className.trim()
+        ? element.className.trim()
+        : "(none)"
+    }`,
+    "",
+    `text: ${
+      (element.textContent || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .slice(0, 180) || "(none)"
+    }`,
+    "",
+    `path: ${getElementPath(element)}`,
+    "",
+    "attributes:",
+    attributes || "(none)",
+    "",
+    "dimensions:",
+    `width: ${Math.round(rectangle.width)}px`,
+    `height: ${Math.round(rectangle.height)}px`,
+    "",
+    "computed styles:",
+    `display: ${styles.display}`,
+    `position: ${styles.position}`,
+    `color: ${styles.color}`,
+    `background: ${styles.backgroundColor}`,
+    `font-size: ${styles.fontSize}`,
+    `font-family: ${styles.fontFamily}`,
+    `margin: ${styles.margin}`,
+    `padding: ${styles.padding}`
+  ];
+
+  inspectorDetails.textContent =
+    details.join("\n");
+
+  inspectorPanel.classList.add("open");
+}
+
+function clearPreviewHighlight() {
+  if (highlightedElement) {
+    highlightedElement.classList.remove(
+      "inspect-hover"
+    );
+
+    highlightedElement = null;
+  }
+}
+
+function highlightPreviewElement(element) {
+  if (!inspectorActive || !element) {
+    return;
+  }
+
+  clearPreviewHighlight();
+
+  highlightedElement = element;
+  highlightedElement.classList.add(
+    "inspect-hover"
+  );
+}
+
+function handlePreviewMouseMove(event) {
+  if (!inspectorActive) {
+    return;
+  }
+
+  highlightPreviewElement(event.target);
+}
+
+function handlePreviewInspectClick(event) {
+  if (!inspectorActive) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  inspectPreviewElement(event.target);
+  stopInspecting();
+}
+
+function startInspecting() {
+  const previewDocument =
+    getPreviewDocument();
+
+  if (!previewDocument) {
+    inspectorDetails.textContent =
+      "The live preview is not ready yet.";
+
+    inspectorPanel.classList.add("open");
+    return;
+  }
+
+  inspectorActive = true;
+  inspectElementButton.classList.add("active");
+  inspectElementButton.textContent =
+    "STOP INSPECTING";
+
+  previewDocument.addEventListener(
+    "mousemove",
+    handlePreviewMouseMove,
+    true
+  );
+
+  previewDocument.addEventListener(
+    "click",
+    handlePreviewInspectClick,
+    true
+  );
+}
+
+function stopInspecting() {
+  inspectorActive = false;
+
+  inspectElementButton.classList.remove(
+    "active"
+  );
+
+  inspectElementButton.textContent =
+    "INSPECT ELEMENT";
+
+  const previewDocument =
+    getPreviewDocument();
+
+  if (previewDocument) {
+    previewDocument.removeEventListener(
+      "mousemove",
+      handlePreviewMouseMove,
+      true
+    );
+
+    previewDocument.removeEventListener(
+      "click",
+      handlePreviewInspectClick,
+      true
+    );
+  }
+
+  clearPreviewHighlight();
+}
+
+function startPanelResize(mode, event) {
+  if (window.innerWidth <= 850) {
+    return;
+  }
+
+  event.preventDefault();
+
+  const startX = event.clientX;
+  const bodyWidth =
+    codeBody.getBoundingClientRect().width;
+
+  const startColumns =
+    getComputedStyle(codeBody)
+      .gridTemplateColumns
+      .split(" ")
+      .map((value) => parseFloat(value));
+
+  const filesWidth = startColumns[0];
+  const editorWidth = startColumns[1];
+  const previewWidth = startColumns[2];
+
+  const handle =
+    mode === "editor"
+      ? editorResizeHandle
+      : previewResizeHandle;
+
+  handle.classList.add("resizing");
+
+  document.body.style.cursor =
+    "col-resize";
+
+  document.body.style.userSelect =
+    "none";
+
+  function movePanel(moveEvent) {
+    const distance =
+      moveEvent.clientX - startX;
+
+    const minimumFiles = 120;
+    const minimumEditor = 220;
+    const minimumPreview = 280;
+
+    let nextFiles = filesWidth;
+    let nextEditor = editorWidth;
+    let nextPreview = previewWidth;
+
+    if (mode === "editor") {
+      nextEditor = Math.max(
+        minimumEditor,
+        Math.min(
+          bodyWidth -
+            minimumFiles -
+            minimumPreview -
+            nextFiles,
+          editorWidth + distance
+        )
+      );
+
+      nextPreview =
+        bodyWidth -
+        nextFiles -
+        nextEditor;
+    } else {
+      nextPreview = Math.max(
+        minimumPreview,
+        Math.min(
+          bodyWidth -
+            minimumFiles -
+            minimumEditor -
+            nextFiles,
+          previewWidth - distance
+        )
+      );
+
+      nextEditor =
+        bodyWidth -
+        nextFiles -
+        nextPreview;
+    }
+
+    codeBody.style.gridTemplateColumns =
+      `${nextFiles}px ${nextEditor}px ${nextPreview}px`;
+
+    savedPanelSizes = {
+      files: nextFiles,
+      editor: nextEditor,
+      preview: nextPreview
+    };
+  }
+
+  function stopPanelResize() {
+    handle.classList.remove("resizing");
+
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+
+    document.removeEventListener(
+      "pointermove",
+      movePanel
+    );
+
+    document.removeEventListener(
+      "pointerup",
+      stopPanelResize
+    );
+
+    savePanelSizes();
+  }
+
+  document.addEventListener(
+    "pointermove",
+    movePanel
+  );
+
+  document.addEventListener(
+    "pointerup",
+    stopPanelResize
+  );
+}
+
+codeEditorElement.addEventListener(
+  "input",
+  updateCodePreview
+);
+
+codeEditorElement.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const start = codeEditorElement.selectionStart;
+    const end = codeEditorElement.selectionEnd;
+    const value = codeEditorElement.value;
+
+    codeEditorElement.value =
+      value.slice(0, start) +
+      "  " +
+      value.slice(end);
+
+    codeEditorElement.selectionStart =
+      codeEditorElement.selectionEnd =
+        start + 2;
+
+    updateCodePreview();
+  }
+);
+
+closeCodeButton.addEventListener(
+  "click",
+  () => {
+    window.location.hash = "";
+    closeCodeWorkspace();
+  }
+);
+
+newCodeFileButton.addEventListener(
+  "click",
+  () => {
+    const filename = prompt(
+      "New file name:",
+      "new-file.html"
+    );
+
+    if (!filename || codeFiles[filename]) {
+      return;
+    }
+
+    codeFiles[filename] = "";
+    activeCodeFile = filename;
+
+    renderCodeFiles();
+    loadCodeFile();
+    updateCodePreview();
+  }
+);
+
+uploadCodeImageButton.addEventListener(
+  "click",
+  () => {
+    codeImageInput.click();
+  }
+);
+
+inspectElementButton.addEventListener(
+  "click",
+  () => {
+    if (inspectorActive) {
+      stopInspecting();
+    } else {
+      startInspecting();
+    }
+  }
+);
+
+closeInspectorButton.addEventListener(
+  "click",
+  () => {
+    inspectorPanel.classList.remove("open");
+    stopInspecting();
+  }
+);
+
+codeImageInput.addEventListener(
+  "change",
+  () => {
+    const file = codeImageInput.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener(
+      "load",
+      () => {
         const imageData = reader.result;
 
-        codeFiles["uploaded-image-data.txt"] = imageData;
-        codeFiles["index.html"] =
-          `${codeFiles["index.html"]}\n<img src="${imageData}" style="max-width:100%;">`;
+        codeFiles[
+          "uploaded-image-data.txt"
+        ] = imageData;
 
+        codeFiles["index.html"] =
+          `${codeFiles["index.html"]}
+
+<img src="${imageData}" alt="Uploaded image" style="max-width:100%;">`;
         activeCodeFile = "index.html";
+
         renderCodeFiles();
         loadCodeFile();
         updateCodePreview();
         saveCodeFiles();
-      });
 
-      reader.readAsDataURL(file);
-    });
+        codeImageInput.value = "";
+      }
+    );
 
-    function loadSavedCodeFiles() {
-      const saved = localStorage.getItem(
-        "ascii-terminal-code-files"
+    reader.readAsDataURL(file);
+  }
+);
+
+editorResizeHandle.addEventListener(
+  "pointerdown",
+  (event) => {
+    startPanelResize("editor", event);
+  }
+);
+
+previewResizeHandle.addEventListener(
+  "pointerdown",
+  (event) => {
+    startPanelResize("preview", event);
+  }
+);
+
+previewFullscreenButton.addEventListener(
+  "click",
+  setPreviewFullscreen
+);
+
+document.addEventListener(
+  "fullscreenchange",
+  () => {
+    if (
+      document.fullscreenElement !==
+      previewPanel
+    ) {
+      previewPanel.classList.remove(
+        "preview-fullscreen"
       );
-
-      if (!saved) {
-        return;
-      }
-
-      try {
-        codeFiles = JSON.parse(saved);
-      } catch {
-        console.warn("Could not load saved project.");
-      }
     }
 
-    loadSavedCodeFiles();
-    renderCodeFiles();
-    loadCodeFile();
-    updateCodePreview();
+    updateFullscreenButton();
+  }
+);
 
+document.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.key !== "Escape") {
+      return;
+    }
+
+    if (
+      previewPanel.classList.contains(
+        "preview-fullscreen"
+      )
+    ) {
+      exitPreviewFullscreen();
+    }
+
+    if (inspectorActive) {
+      stopInspecting();
+    }
+  }
+);
+
+loadSavedCodeFiles();
+renderCodeFiles();
+loadCodeFile();
+updateCodePreview();
+
+if (window.location.hash === "#code") {
+  openCodeWorkspace();
+}
+
+window.addEventListener(
+  "hashchange",
+  () => {
     if (window.location.hash === "#code") {
       openCodeWorkspace();
+    } else if (codeWorkspace.classList.contains("open")) {
+      closeCodeWorkspace();
     }
+  }
+);
 
-    window.addEventListener("hashchange", () => {
-      if (window.location.hash === "#code") {
-        openCodeWorkspace();
-      } else {
-        closeCodeWorkspace();
-      }
-    });
+updateCursor();
+commandInput.focus();
 
-    updateCursor();
-    commandInput.focus();
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    /*
-      Open the editor by typing:
-
-      code
-
-      or:
-
-      /code
-    */
   </script>
 </body>
 </html>
